@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import {useEffect, useState} from "react";
+import { useDebounce } from 'use-debounce'
 
 // <code className={`text-2xl ${textShownFont}`}>郑</code>
 // <code className={`text-l ${textShownFont}`}>zheng</code>
@@ -17,7 +18,6 @@ import {useEffect, useState} from "react";
 
 export default function Home() {
     const textShownFont = "flex justify-center font-mono font-bold text-violet-600";
-    const inputText: string = "";
     const visibilityMode = [
         {key: "show_all", label: "Show All"},
         {key: "smart", label: "Smart"},
@@ -25,10 +25,18 @@ export default function Home() {
     ];
 
     const [curVisibility, setCurVisibility] = useState(visibilityMode[1].key);
+    const [inputText, setInputText] = useState("");
+    const [debouncedInputText] = useDebounce(inputText, 500);
+    const [inputLength, setinputLength] = useState(1);
+
+    useEffect(() => {
+        setinputLength(debouncedInputText.length)
+    }, [debouncedInputText])
 
     return (
         <main className="h-screen flex flex-col text-2xl text-white">
             <section className="h-3/5 min-h-[10rem] bg-gray-800">
+                <p> {inputLength} characters </p>
             </section>
             <section className="flex flex-col flex-grow min-h-[8rem] md:h-80">
                 <div className="flex text-white text-lg bg-blue-900 items-center py-1 px-2">
@@ -57,7 +65,7 @@ export default function Home() {
                 <textarea
                     className="flex-grow w-full bg-gray-900 p-4"
                     placeholder="Write something here"
-                    defaultValue={inputText}>
+                    defaultValue={inputText} onChange={e => setInputText(e.target.value)}>
                 </textarea>
             </section>
         </main>
