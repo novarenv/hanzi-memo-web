@@ -23,7 +23,7 @@ export default function Home() {
     const [zhText, setZHText] = useState([
         {zh: "南京", pinyin: "Nan2 jing1", visible: true},
         {zh: "林业", pinyin: "lin2 ye4", visible: true},
-        {zh: "大学", pinyin: "da4 xue2", visible: true},
+        {zh: "大学", pinyin: "da4 xue2", visible: false},
     ]);
     useEffect(() => {
         GET()

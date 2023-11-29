@@ -1,4 +1,5 @@
 import {mark, parsePinyin} from '../utils/pinyin'
+import {useState} from "react";
 
 function ColoredZH(props: { zh: string, tone: number }) {
     // TODO: Pick better colors
@@ -22,19 +23,27 @@ export function ZHChar(props: { zh: string, pinyin: string, is_visible: boolean 
         .map(x => mark(x[0], x[1]))
         .join("");
 
+    const [show, setShow] = useState(props.is_visible);
+
     if (zhs.length != numbered_pinyin.length) {
         throw new Error("Number of character doesnt match the pinyin")
     }
 
+    function toggleVisiblity(value: boolean){
+        setShow(props.is_visible || value)
+    }
+
     return (
         <>
-            <div className="flex flex-col items-center justify-center px-1.5">
+            <div className="flex flex-col items-center justify-center px-1.5"
+                 onMouseOver={() => toggleVisiblity( true)}
+                 onMouseLeave={() => toggleVisiblity( false)}>
                 <div className="text-4xl">
                     {zhs.map((zh, i) => (
                         <ColoredZH zh={zh} tone={tones[i]} key={i}/>
                     ))}
                 </div>
-                <span className={`text-lg ${props.is_visible ? "visible" : "invisible"}`}>
+                <span className={`text-lg ${show ? "visible" : "invisible"}`}>
                     {marked_pinyin}
                 </span>
             </div>
