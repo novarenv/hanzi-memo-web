@@ -15,19 +15,19 @@ export default function Home() {
         {key: "hide_all", label: "Hide All"},
     ];
 
-    const [inputLength, setinputLength] = useState(1);
+    const [inputLength, setInputLength] = useState(1);
     const [get, setGet] = useState([]);
     const [mode, setMode] = useState(visibilityMode[1].key);
     const [inputText, setInputText] = useState("");
     const [debouncedInputText] = useDebounce(inputText, 500);
 
-    // TODO: Optimize, store only the `visible` prop
-    const [originZHText, setOriginZHText] = useState([
+    const [zhText, setZhText] = useState([
         {zh: "南京", pinyin: "Nan2 jing1", visible: true},
         {zh: "林业", pinyin: "lin2 ye4", visible: true},
         {zh: "大学", pinyin: "da4 xue2", visible: false},
     ]);
-    const [shownZHText, setShownZHText] = useState(originZHText);
+
+    const [visibleStates, setVisibleStates] = useState(zhText.map(x => x.visible))
 
     useEffect(() => {
         GET()
@@ -53,11 +53,11 @@ export default function Home() {
 
     useEffect(() => {
         //TODO: Fetch data, then set zhText
-        setinputLength(debouncedInputText.length);
+        setInputLength(debouncedInputText.length);
     }, [debouncedInputText]);
 
     useEffect(() => {
-        setShownZHText(() => originZHText.map((item, i) => ({...item, visible: isVisible(mode, item.visible)})));
+        setVisibleStates(zhText.map(x => isVisible(mode, x.visible)))
     }, [mode])
 
     return (
@@ -65,12 +65,11 @@ export default function Home() {
             <section
                 className="h-3/5 min-h-[10rem] w-full flex justify-center flex-grow bg-gray-800 p-4 overflow-y-scroll">
                 <div className="flex flex-wrap">
-                    {/*TODO: Adjust visibility based on mode*/}
-                    {shownZHText.map((item, i) => (
+                    {zhText.map((item, i) => (
                         <ZHChar key={i}
                             zh={item.zh}
                             pinyin={item.pinyin}
-                            is_visible={item.visible}/>
+                            is_visible={visibleStates[i]}/>
                     ))}
                 </div>
             </section>
