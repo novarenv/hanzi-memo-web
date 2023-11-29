@@ -1,5 +1,5 @@
 import {mark, parsePinyin} from '../utils/pinyin'
-import {useState} from "react";
+import {useEffect, useState} from "react";
 
 function ColoredZH(props: { zh: string, tone: number }) {
     // TODO: Pick better colors
@@ -32,6 +32,10 @@ export function ZHChar(props: { zh: string, pinyin: string, is_visible: boolean 
     function toggleVisiblity(value: boolean){
         setShow(props.is_visible || value)
     }
+
+    useEffect(() => {
+        toggleVisiblity(props.is_visible)
+    }, [props.is_visible])
 
     return (
         <>

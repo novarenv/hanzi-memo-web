@@ -17,14 +17,18 @@ export default function Home() {
 
     const [inputLength, setinputLength] = useState(1);
     const [get, setGet] = useState([]);
-    const [curVisibility, setCurVisibility] = useState(visibilityMode[1].key);
+    const [mode, setMode] = useState(visibilityMode[1].key);
     const [inputText, setInputText] = useState("");
     const [debouncedInputText] = useDebounce(inputText, 500);
-    const [zhText, setZHText] = useState([
+
+    // TODO: Optimize, store only the `visible` prop
+    const [originZHText, setOriginZHText] = useState([
         {zh: "南京", pinyin: "Nan2 jing1", visible: true},
         {zh: "林业", pinyin: "lin2 ye4", visible: true},
         {zh: "大学", pinyin: "da4 xue2", visible: false},
     ]);
+    const [shownZHText, setShownZHText] = useState(originZHText);
+
     useEffect(() => {
         GET()
             .then((res) => {
@@ -41,10 +45,20 @@ export default function Home() {
         console.log("Get", get);
     }, [get]);
 
+    function isVisible(mode: string, visibility: boolean): boolean {
+        if(mode == "show_all") return true;
+        if(mode == "hide_all") return false;
+        return visibility;
+    }
+
     useEffect(() => {
         //TODO: Fetch data, then set zhText
         setinputLength(debouncedInputText.length);
     }, [debouncedInputText]);
+
+    useEffect(() => {
+        setShownZHText(() => originZHText.map((item, i) => ({...item, visible: isVisible(mode, item.visible)})));
+    }, [mode])
 
     return (
         <main className="flex min-h-screen flex-col items-center justify-between l:p-24">
@@ -52,13 +66,11 @@ export default function Home() {
                 className="h-3/5 min-h-[10rem] w-full flex justify-center flex-grow bg-gray-800 p-4 overflow-y-scroll">
                 <div className="flex flex-wrap">
                     {/*TODO: Adjust visibility based on mode*/}
-                    {zhText.map((item, i) => (
-                        <ZHChar
+                    {shownZHText.map((item, i) => (
+                        <ZHChar key={i}
                             zh={item.zh}
                             pinyin={item.pinyin}
-                            is_visible={item.visible}
-                            key={i}
-                        />
+                            is_visible={item.visible}/>
                     ))}
                 </div>
             </section>
@@ -78,7 +90,7 @@ export default function Home() {
                         {visibilityMode.map((x, i) => (
                             <label
                                 className={`flex gap-2 py-1 px-2 hover:bg-gray-400 hover:cursor-pointer ${
-                                    curVisibility == x.key
+                                    mode == x.key
                                         ? "bg-gray-200 text-black font-bold"
                                         : ""
                                 }`}
@@ -87,7 +99,7 @@ export default function Home() {
                                 <input
                                     type="radio"
                                     name="visibility-toggle"
-                                    onChange={() => setCurVisibility(x.key)}
+                                    onChange={() => setMode(x.key)}
                                     hidden={true}
                                 />
                                 <span>{x.label}</span>
