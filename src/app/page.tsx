@@ -32,7 +32,7 @@ export default function Home() {
 
     // TODO: Load blacklist from localStorage
     const [blacklist, setBlacklist] = useState<string[]>([]);
-    // const [whitelist, setWhitelist] = useState([]);
+    const [whitelist, setWhitelist] = useState<string[]>([]);
 
     useEffect(() => {
         GET()
@@ -77,7 +77,18 @@ export default function Home() {
                 if(!a.includes(b)) a.push(b);
                 return a;
             }, []))
+
+        // Whitelist: when origin is not visible, but visible state is true
+        setWhitelist(zhText
+            .filter((x, i) => !x.visible && x.visible != visibleStates[i])
+            .map(x => x.id)
+            .reduce<string[]>((a, b) => {
+                if(!a.includes(b)) a.push(b);
+                return a;
+            }, []))
+
     }, [visibleStates])
+
 
     // FIXME: compare id instead of zh
     function updateCheckbox(name: string, value: boolean){
@@ -108,7 +119,7 @@ export default function Home() {
                                    onChange={(e) => updateCheckbox(item.id, e.target.checked)}/>
                             <label
                                 htmlFor={`toggle-${item.id}-i`}
-                                title="click to hide this character"
+                                title={`click to ${visibleStates[i] ? "hide" : "show"} this character`}
                                 className="hover:cursor-pointer">
                                 <ZHChar
                                     zh={item.zh}
