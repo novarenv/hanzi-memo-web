@@ -7,6 +7,7 @@ export const corsHeaders = {
 };
 
 export async function GET() {
+
   const res = await fetch("https://hz.youcantry.me/api/pinyins/爱", {
     headers: corsHeaders
   });
