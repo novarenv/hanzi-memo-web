@@ -29,7 +29,9 @@ export default function Home() {
     ]);
 
     const [visibleStates, setVisibleStates] = useState(zhText.map(x => x.visible))
-    // const [blacklist, setBlacklist] = useState([]);
+
+    // TODO: Load blacklist from localStorage
+    const [blacklist, setBlacklist] = useState<string[]>([]);
     // const [whitelist, setWhitelist] = useState([]);
 
     useEffect(() => {
@@ -65,6 +67,17 @@ export default function Home() {
         }))
     }, [mode, zhText])
 
+    useEffect(() => {
+        // Blacklist: when origin is visible, but visible state is false
+        // TODO: Save to localStorage
+        setBlacklist(zhText
+            .filter((x, i) => x.visible && x.visible != visibleStates[i])
+            .map(x => x.id)
+            .reduce<string[]>((a, b) => {
+                if(!a.includes(b)) a.push(b);
+                return a;
+            }, []))
+    }, [visibleStates])
 
     // FIXME: compare id instead of zh
     function updateCheckbox(name: string, value: boolean){
