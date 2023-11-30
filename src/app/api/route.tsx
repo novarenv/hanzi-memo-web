@@ -9,7 +9,7 @@ export const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
-interface D<T>{
+interface D<T> {
   data: T
 }
 
@@ -25,8 +25,19 @@ interface Segment {
   }[]
 }
 
-export async function getPinyins(char: string) {
-  const res = await fetch(BASE_URL + "/pinyins/" + char, {
+export async function getPinyins(
+    char: string,
+    lexBlacklist: string[],
+    lexWhitelist: string[],
+    collBlacklist: string[],
+) {
+
+  const urlParam = new URLSearchParams({
+    blacklist_collection: collBlacklist.join(","),
+    blacklist_lexeme: lexBlacklist.join(","),
+  })
+
+  const res = await fetch(`${BASE_URL}/pinyins/${char}?` + urlParam, {
     headers: corsHeaders,
   });
   return await res.json() as Promise<D<Segment[]>>;
@@ -37,7 +48,7 @@ export async function getCollecitons() {
     headers: corsHeaders,
   });
   const data = await res.json();
-  return Response.json({ data });
+  return Response.json({data});
 }
 
 export async function getTexts() {
@@ -45,5 +56,5 @@ export async function getTexts() {
     headers: corsHeaders,
   });
   const data = await res.json();
-  return Response.json({ data });
+  return Response.json({data});
 }

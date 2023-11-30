@@ -5,6 +5,7 @@ import {useDebounce} from "use-debounce";
 import {ZHChar} from "../components/ZHChar";
 import {getCollecitons, getPinyins} from "../app/api/route";
 import ModalLayout from "@/components/Modal";
+import {white} from "next/dist/lib/picocolors";
 
 const LS_BL_COLL = "collection_blacklist";
 const LS_LX_BLACKLIST = "lexeme_blacklist";
@@ -131,8 +132,8 @@ export default function Home() {
   useEffect(() => {
     //TODO: Fetch data, then set zhText
     setInputLength(debouncedInputText.length);
-
-    getPinyins(inputText)
+    const collectionBL = JSON.parse(localStorage.getItem(LS_BL_COLL) || "[]")
+    getPinyins(inputText, blacklist, whitelist, collectionBL)
         .then((res) => {
           setZhText(res.data.map((s) => {
             let pinyin_id = `--no-id-${s.segment}--`;
