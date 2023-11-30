@@ -1,6 +1,13 @@
 GET https://hz.youcantry.me/api/
 
-
-### Test
-
+### Pinyins
 GET https://hz.youcantry.me/api/pinyins/爱
+
+### Collections
+GET https://hz.youcantry.me/api/collections
+
+### Texts
+GET https://hz.youcantry.me/api/texts
+
+###
+GET https://walrus-app-we25d.ondigitalocean.app/api/collections
