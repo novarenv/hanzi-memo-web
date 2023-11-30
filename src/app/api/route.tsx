@@ -1,3 +1,5 @@
+import PreviousMap from "postcss/lib/previous-map";
+
 export const dynamic = "force-dynamic"; // defaults to force-static
 const BASE_URL = process.env.NEXT_PUBLIC_API;
 
@@ -7,35 +9,53 @@ export const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
-export async function getPinyins(char: string) {
-  const res = await fetch(BASE_URL + "/pinyins/" + char, {
-    headers: corsHeaders,
-  });
-  const data = await res.json();
+interface D<T> {
+  data: T
+}
 
-  console.log("Res pinyins", data);
+interface Segment {
+  segment: string
+  is_visible: boolean
+  strict_visible: boolean
+  pinyin: {
+    id: string
+    zh_sc?: string
+    zh_tc?: string
+    pinyin?: string
+  }[]
+}
 
-  return Response.json({ data });
+const options = {headers: corsHeaders};
+
+export async function getPinyins(
+    char: string,
+    lexBlacklist: string[],
+    lexWhitelist: string[],
+    collBlacklist: string[],
+) {
+
+  const urlParam = new URLSearchParams({
+    blacklist_collection: collBlacklist.join(","),
+    blacklist_lexeme: lexBlacklist.join(","),
+  })
+
+  const res = await fetch(`${BASE_URL}/pinyins/${char}?` + urlParam, options);
+  return await res.json() as Promise<D<Segment[]>>;
 }
 
 export async function getCollecitons() {
-  const res = await fetch(BASE_URL + "/collections", {
-    headers: corsHeaders,
-  });
+  const res = await fetch(BASE_URL + "/collections", options);
   const data = await res.json();
+  return Response.json({data});
+}
 
-  console.log("Res collections", data);
-
-  return Response.json({ data });
+export interface SampleText {
+  id: string
+  title: string
+  text: string
 }
 
 export async function getTexts() {
-  const res = await fetch(BASE_URL + "/texts", {
-    headers: corsHeaders,
-  });
-  const data = await res.json();
-
-  console.log("Res texts", data);
-
-  return Response.json({ data });
+  const res = await fetch(`${BASE_URL}/texts`, options);
+  return await res.json() as Promise<D<SampleText[]>>;
 }
