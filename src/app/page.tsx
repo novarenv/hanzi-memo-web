@@ -129,9 +129,7 @@ export default function Home() {
         .catch((err) => console.log("Err", err));
   }, []);
 
-  useEffect(() => {
-    //TODO: Fetch data, then set zhText
-    setInputLength(debouncedInputText.length);
+  function fireChanges() {
     const collectionBL = JSON.parse(localStorage.getItem(LS_BL_COLL) || "[]")
     getPinyins(inputText, blacklist, whitelist, collectionBL)
         .then((res) => {
@@ -153,6 +151,13 @@ export default function Home() {
           }))
         })
         .catch((err: any) => console.log("Err", err));
+
+  }
+
+  useEffect(() => {
+    //TODO: Fetch data, then set zhText
+    setInputLength(debouncedInputText.length);
+    fireChanges();
   }, [debouncedInputText]);
 
   useEffect(() => {
@@ -211,6 +216,7 @@ export default function Home() {
             setModalVis={setModalVis}
             collections={collections}
             blackListColl={blacklistColl}
+            fireChanges={fireChanges}
         />
 
         <div className="w-full flex items-center bg-indigo-300">
