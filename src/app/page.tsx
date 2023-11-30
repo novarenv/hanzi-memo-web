@@ -218,7 +218,6 @@ export default function Home() {
 
       <section className="h-3/5 min-h-[10rem] w-full flex justify-center flex-grow bg-gray-800 p-4 overflow-y-scroll">
         <div className="flex flex-wrap">
-          {/*TODO: Adjust visibility based on mode*/}
           {zhText.map((item, i) => (
             <div key={i}>
               <input
