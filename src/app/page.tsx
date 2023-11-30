@@ -2,8 +2,8 @@
 
 import {useEffect, useState} from "react";
 import {useDebounce} from "use-debounce";
-import {ZHChar} from "../components/ZHChar";
-import {GET} from "../app/api/route";
+import {ZHChar} from "@/components/ZHChar";
+import {GET} from "@/app/api/route";
 
 // TODO: Apply cosmetics
 export default function Home() {
@@ -22,12 +22,15 @@ export default function Home() {
     const [debouncedInputText] = useDebounce(inputText, 500);
 
     const [zhText, setZhText] = useState([
-        {zh: "南京", pinyin: "Nan2 jing1", visible: true},
-        {zh: "林业", pinyin: "lin2 ye4", visible: true},
-        {zh: "大学", pinyin: "da4 xue2", visible: false},
+        {id: "some-id-1", zh: "南京", pinyin: "Nan2 jing1", visible: true},
+        {id: "some-id-2", zh: "林业", pinyin: "lin2 ye4", visible: true},
+        {id: "some-id-3", zh: "大学", pinyin: "da4 xue2", visible: false},
+        {id: "some-id-3", zh: "大学", pinyin: "da4 xue2", visible: false},
     ]);
 
     const [visibleStates, setVisibleStates] = useState(zhText.map(x => x.visible))
+    // const [blacklist, setBlacklist] = useState([]);
+    // const [whitelist, setWhitelist] = useState([]);
 
     useEffect(() => {
         GET()
@@ -57,19 +60,49 @@ export default function Home() {
     }, [debouncedInputText]);
 
     useEffect(() => {
-        setVisibleStates(zhText.map(x => isVisible(mode, x.visible)))
-    }, [mode])
+        setVisibleStates(zhText.map((x, i) => {
+            return isVisible(mode, x.visible)
+        }))
+    }, [mode, zhText])
+
+
+    // FIXME: compare id instead of zh
+    function updateCheckbox(name: string, value: boolean){
+        const changes= zhText.map((x, i) => x.id == name);
+        setVisibleStates((prev) => prev.map((original_state, i) => {
+            if(changes[i]){
+                return !value;
+            }
+            return original_state;
+        }));
+    }
 
     return (
         <main className="flex min-h-screen flex-col items-center justify-between l:p-24">
             <section
-                className="h-3/5 min-h-[10rem] w-full flex justify-center flex-grow bg-gray-800 p-4 overflow-y-scroll">
-                <div className="flex flex-wrap">
+                className="h-3/5 min-h-[10rem] w-full flex flex-grow bg-gray-800 p-4 overflow-y-scroll">
+                <div className="flex flex-wrap items-start">
                     {zhText.map((item, i) => (
-                        <ZHChar key={i}
-                            zh={item.zh}
-                            pinyin={item.pinyin}
-                            is_visible={visibleStates[i]}/>
+                        <div key={i}>
+                            <input type="checkbox"
+                                   className="scale-75"
+                                   id={`toggle-${item.id}-i`}
+                                   alt="disable"
+                                   hidden
+                                   disabled={mode != "smart"}
+                                   name={item.zh}
+                                   checked={!visibleStates[i]}
+                                   onChange={(e) => updateCheckbox(item.id, e.target.checked)}/>
+                            <label
+                                htmlFor={`toggle-${item.id}-i`}
+                                title="click to hide this character"
+                                className="hover:cursor-pointer">
+                                <ZHChar
+                                    zh={item.zh}
+                                    pinyin={item.pinyin}
+                                    is_visible={visibleStates[i]}/>
+                            </label>
+                        </div>
                     ))}
                 </div>
             </section>

@@ -1,4 +1,4 @@
-import {mark, parsePinyin} from '../utils/pinyin'
+import {mark, parsePinyin} from '@/utils/pinyin'
 import {useEffect, useState} from "react";
 
 function ColoredZH(props: { zh: string, tone: number }) {
@@ -39,7 +39,7 @@ export function ZHChar(props: { zh: string, pinyin: string, is_visible: boolean 
 
     return (
         <>
-            <div className="flex flex-col items-center justify-center px-1.5"
+            <div className="flex flex-col items-center justify-center px-1.5 gap-1.5"
                  onMouseOver={() => toggleVisiblity( true)}
                  onMouseLeave={() => toggleVisiblity( false)}>
                 <div className="text-4xl">
@@ -47,9 +47,11 @@ export function ZHChar(props: { zh: string, pinyin: string, is_visible: boolean 
                         <ColoredZH zh={zh} tone={tones[i]} key={i}/>
                     ))}
                 </div>
-                <span className={`text-lg ${show ? "visible" : "invisible"}`}>
-                    {marked_pinyin}
-                </span>
+                <div className={`${!show ? "bg-gray-800 border border-solid border-gray-600 rounded-sm" : ""}`}>
+                    <span className={`text-lg  ${show ? "visible" : "invisible"}`}>
+                        {marked_pinyin}
+                    </span>
+                </div>
             </div>
         </>
     );
