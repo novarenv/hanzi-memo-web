@@ -3,7 +3,7 @@
 import {ChangeEvent, useEffect, useState} from "react";
 import {useDebounce} from "use-debounce";
 import {ZHChar} from "../components/ZHChar";
-import {getCollecitons, getPinyins, getTexts, SampleText} from "../app/api/route";
+import {getCollecitons, getPinyins, getTexts, SampleText} from "./api/backend";
 import ModalLayout from "@/components/Modal";
 
 const LS_BL_COLL = "collection_blacklist";
@@ -25,9 +25,6 @@ export default function Home() {
     {key: "hide_all", label: "Hide All"},
   ];
 
-  const userBlackListColl = JSON.parse(
-      localStorage.getItem(LS_BL_COLL) || "[]"
-  );
 
   const [inputLength, setInputLength] = useState(1);
   const [mode, setMode] = useState(visibilityMode[1].key);
@@ -39,8 +36,15 @@ export default function Home() {
       zhText.map((x) => x.visible)
   );
 
-  const _userBlacklist = JSON.parse(localStorage.getItem(LS_LX_BLACKLIST) || "[]");
-  const _userWhitelist = JSON.parse(localStorage.getItem(LS_LX_WHITELIST) || "[]");
+  let userBlackListColl = [];
+  let _userBlacklist: string[] = [];
+  let _userWhitelist: string[] = [];
+
+  if (typeof window !== "undefined") {
+    _userBlacklist = JSON.parse(localStorage.getItem(LS_LX_BLACKLIST) || "[]");
+    _userWhitelist = JSON.parse(localStorage.getItem(LS_LX_WHITELIST) || "[]")
+    userBlackListColl = JSON.parse(localStorage.getItem(LS_BL_COLL) || "[]");
+  }
   const [blacklist, setBlacklist] = useState<string[]>(_userBlacklist);
   const [whitelist, setWhitelist] = useState<string[]>(_userWhitelist);
   const [modalVis, setModalVis] = useState(false);
