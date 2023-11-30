@@ -7,9 +7,8 @@ import {getCollecitons, getPinyins} from "../app/api/route";
 import ModalLayout from "@/components/Modal";
 
 const LS_BL_COLL = "collection_blacklist";
-
-const LS_COLL_BLACKLIST = "collection_blacklist";
-const LS_COLL_WHITELIST = "collection_whitelist";
+const LS_LX_BLACKLIST = "lexeme_blacklist";
+const LS_LX_WHITELIST = "lexeme_whitelist";
 
 // TODO: Apply cosmetics
 export default function Home() {
@@ -39,8 +38,8 @@ export default function Home() {
       zhText.map((x) => x.visible)
   );
 
-  const _userBlacklist = JSON.parse(localStorage.getItem(LS_COLL_BLACKLIST) || "[]");
-  const _userWhitelist = JSON.parse(localStorage.getItem(LS_COLL_WHITELIST) || "[]");
+  const _userBlacklist = JSON.parse(localStorage.getItem(LS_LX_BLACKLIST) || "[]");
+  const _userWhitelist = JSON.parse(localStorage.getItem(LS_LX_WHITELIST) || "[]");
   const [blacklist, setBlacklist] = useState<string[]>(_userBlacklist);
   const [whitelist, setWhitelist] = useState<string[]>(_userWhitelist);
   const [modalVis, setModalVis] = useState(false);
@@ -84,8 +83,8 @@ export default function Home() {
   }, [visibleStates])
 
   useEffect(() => {
-    localStorage.setItem(LS_COLL_BLACKLIST, JSON.stringify(blacklist));
-    localStorage.setItem(LS_COLL_WHITELIST, JSON.stringify(whitelist));
+    localStorage.setItem(LS_LX_BLACKLIST, JSON.stringify(blacklist));
+    localStorage.setItem(LS_LX_WHITELIST, JSON.stringify(whitelist));
   }, [whitelist, blacklist])
 
   const TripleDots = () => {
