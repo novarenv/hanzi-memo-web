@@ -1,3 +1,5 @@
+import PreviousMap from "postcss/lib/previous-map";
+
 export const dynamic = "force-dynamic"; // defaults to force-static
 const BASE_URL = process.env.NEXT_PUBLIC_API;
 
@@ -7,15 +9,27 @@ export const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
+interface D<T>{
+  data: T
+}
+
+interface Segment {
+  segment: string
+  is_visible: boolean
+  strict_visible: boolean
+  pinyin: {
+    id: string
+    zh_sc?: string
+    zh_tc?: string
+    pinyin?: string
+  }[]
+}
+
 export async function getPinyins(char: string) {
   const res = await fetch(BASE_URL + "/pinyins/" + char, {
     headers: corsHeaders,
   });
-  const data = await res.json();
-
-  console.log("Res pinyins", data);
-
-  return Response.json({ data });
+  return await res.json() as Promise<D<Segment[]>>;
 }
 
 export async function getCollecitons() {
@@ -23,9 +37,6 @@ export async function getCollecitons() {
     headers: corsHeaders,
   });
   const data = await res.json();
-
-  console.log("Res collections", data);
-
   return Response.json({ data });
 }
 
@@ -34,8 +45,5 @@ export async function getTexts() {
     headers: corsHeaders,
   });
   const data = await res.json();
-
-  console.log("Res texts", data);
-
   return Response.json({ data });
 }

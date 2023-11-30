@@ -28,12 +28,9 @@ export const ModalLayout = (props: {
   const [hskCheck, setHskCheck] = useState(props.collections.map((x) => false));
 
   useEffect(() => {
-    console.log("Selected", selected);
   }, [selected]);
 
   useEffect(() => {
-    console.log("Collecitons modal", props.collections);
-
     setHskList(
       props.collections.map((x) => ({
         id: x.id,
@@ -44,14 +41,12 @@ export const ModalLayout = (props: {
 
     setHskCheck(hskList.map((x) => props.blackListColl.includes(x.id)));
 
-    // console.log("Blacklist", props.blackListColl);
   }, [props.collections]);
 
   useEffect(() => {
     const tempSel = hskList.filter((x, i) => hskCheck[i]).map((x) => x.id);
 
     setSelected(tempSel);
-    console.log("HSK Check", hskCheck);
   }, [hskCheck, hskList]);
 
   function onCheckboxChange(iHsk: number) {

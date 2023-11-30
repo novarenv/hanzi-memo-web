@@ -10,6 +10,13 @@ const LS_BL_COLL = "collection_blacklist";
 const LS_LX_BLACKLIST = "lexeme_blacklist";
 const LS_LX_WHITELIST = "lexeme_whitelist";
 
+interface ZCharView {
+  id: string
+  zh: string
+  pinyin: string
+  visible: boolean
+}
+
 // TODO: Apply cosmetics
 export default function Home() {
   const visibilityMode = [
@@ -17,6 +24,7 @@ export default function Home() {
     {key: "smart", label: "Smart"},
     {key: "hide_all", label: "Hide All"},
   ];
+
   const userBlackListColl = JSON.parse(
       localStorage.getItem(LS_BL_COLL) || "[]"
   );
@@ -27,13 +35,7 @@ export default function Home() {
   const [inputText, setInputText] = useState("");
   const [debouncedInputText] = useDebounce(inputText, 500);
 
-  const [zhText, setZhText] = useState([
-    {id: "some-id-1", zh: "南京", pinyin: "Nan2 jing1", visible: true},
-    {id: "some-id-2", zh: "林业", pinyin: "lin2 ye4", visible: true},
-    {id: "some-id-3", zh: "大学", pinyin: "da4 xue2", visible: false},
-    {id: "some-id-3", zh: "大学", pinyin: "da4 xue2", visible: false},
-  ]);
-
+  const [zhText, setZhText] = useState<ZCharView[]>([]);
   const [visibleStates, setVisibleStates] = useState(
       zhText.map((x) => x.visible)
   );
@@ -109,7 +111,6 @@ export default function Home() {
   };
 
   useEffect(() => {
-    console.log("Get", get);
   }, [get]);
 
   function isVisible(mode: string, visibility: boolean): boolean {
@@ -122,7 +123,6 @@ export default function Home() {
     getCollecitons()
         .then((res) => res.json())
         .then((data) => {
-          console.log("Collections", data);
           setCollections(data.data.data);
         })
         .catch((err) => console.log("Err", err));
@@ -133,16 +133,28 @@ export default function Home() {
     setInputLength(debouncedInputText.length);
 
     getPinyins(inputText)
-        .then((res: { json: () => any }) => {
-          return res.json();
-        })
-        .then((data: { data: { data: any } }) => {
+        .then((res) => {
+          setZhText(res.data.map((s) => {
+            let pinyin_id = `--no-id-${s.segment}--`;
+            let pinyin_text = s.segment;
+
+            if (s.pinyin.length > 0) {
+              pinyin_id = s.pinyin[0].id;
+              pinyin_text = s.pinyin[0].pinyin ?? "";
+            }
+
+            return {
+              id: pinyin_id,
+              pinyin: pinyin_text,
+              zh: s.segment,
+              visible: s.strict_visible,
+            }
+          }))
         })
         .catch((err: any) => console.log("Err", err));
   }, [debouncedInputText]);
 
   useEffect(() => {
-    console.log("modalVis", modalVis);
   }, [modalVis]);
 
   useEffect(() => {
