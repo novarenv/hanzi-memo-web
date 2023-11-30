@@ -25,6 +25,8 @@ interface Segment {
   }[]
 }
 
+const options = {headers: corsHeaders};
+
 export async function getPinyins(
     char: string,
     lexBlacklist: string[],
@@ -37,24 +39,23 @@ export async function getPinyins(
     blacklist_lexeme: lexBlacklist.join(","),
   })
 
-  const res = await fetch(`${BASE_URL}/pinyins/${char}?` + urlParam, {
-    headers: corsHeaders,
-  });
+  const res = await fetch(`${BASE_URL}/pinyins/${char}?` + urlParam, options);
   return await res.json() as Promise<D<Segment[]>>;
 }
 
 export async function getCollecitons() {
-  const res = await fetch(BASE_URL + "/collections", {
-    headers: corsHeaders,
-  });
+  const res = await fetch(BASE_URL + "/collections", options);
   const data = await res.json();
   return Response.json({data});
 }
 
+export interface SampleText {
+  id: string
+  title: string
+  text: string
+}
+
 export async function getTexts() {
-  const res = await fetch(BASE_URL + "/texts", {
-    headers: corsHeaders,
-  });
-  const data = await res.json();
-  return Response.json({data});
+  const res = await fetch(`${BASE_URL}/texts`, options);
+  return await res.json() as Promise<D<SampleText[]>>;
 }

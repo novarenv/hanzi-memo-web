@@ -1,11 +1,10 @@
 "use client";
 
-import {useEffect, useState} from "react";
+import {ChangeEvent, useEffect, useState} from "react";
 import {useDebounce} from "use-debounce";
 import {ZHChar} from "../components/ZHChar";
-import {getCollecitons, getPinyins} from "../app/api/route";
+import {getCollecitons, getPinyins, getTexts, SampleText} from "../app/api/route";
 import ModalLayout from "@/components/Modal";
-import {white} from "next/dist/lib/picocolors";
 
 const LS_BL_COLL = "collection_blacklist";
 const LS_LX_BLACKLIST = "lexeme_blacklist";
@@ -31,7 +30,6 @@ export default function Home() {
   );
 
   const [inputLength, setInputLength] = useState(1);
-  const [get, setGet] = useState([]);
   const [mode, setMode] = useState(visibilityMode[1].key);
   const [inputText, setInputText] = useState("");
   const [debouncedInputText] = useDebounce(inputText, 500);
@@ -49,10 +47,15 @@ export default function Home() {
   const [collections, setCollections] = useState([]);
   const [aboutUsVis, setAboutUsVis] = useState(false);
   const [blacklistColl, setBlacklistColl] = useState(userBlackListColl);
+  const [sampleText, setSampleText] = useState<SampleText[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
 
   useEffect(() => {
-    console.log("Get", get);
-  }, [get]);
+    getTexts().then((res) => {
+      setSampleText(res.data)
+    })
+  }, [])
 
   useEffect(() => {
     setInputLength(debouncedInputText.length);
@@ -111,9 +114,6 @@ export default function Home() {
     );
   };
 
-  useEffect(() => {
-  }, [get]);
-
   function isVisible(mode: string, visibility: boolean): boolean {
     if (mode == "show_all") return true;
     if (mode == "hide_all") return false;
@@ -130,9 +130,12 @@ export default function Home() {
   }, []);
 
   function fireChanges() {
+    console.log("Firing changes")
+    setIsLoading(true);
     const collectionBL = JSON.parse(localStorage.getItem(LS_BL_COLL) || "[]")
     getPinyins(inputText, blacklist, whitelist, collectionBL)
         .then((res) => {
+          setIsLoading(false);
           setZhText(res.data.map((s) => {
             let pinyin_id = `--no-id-${s.segment}--`;
             let pinyin_text = s.segment;
@@ -151,13 +154,16 @@ export default function Home() {
           }))
         })
         .catch((err: any) => console.log("Err", err));
-
   }
 
   useEffect(() => {
+    console.log("debouncing")
     //TODO: Fetch data, then set zhText
     setInputLength(debouncedInputText.length);
-    fireChanges();
+    if (debouncedInputText.trim().length != 0) {
+      console.log("Input empty, is firing?")
+      fireChanges();
+    }
   }, [debouncedInputText]);
 
   useEffect(() => {
@@ -209,6 +215,12 @@ export default function Home() {
     );
   }
 
+  function handlePresetChange(e: ChangeEvent<HTMLSelectElement>) {
+    const x = sampleText.find(x => x.id === e.target.value);
+    console.log(x)
+    setInputText(x ? x.text : "")
+  }
+
   return (
       <main className="flex min-h-screen flex-col items-center justify-between l:p-24">
         <ModalLayout
@@ -216,7 +228,7 @@ export default function Home() {
             setModalVis={setModalVis}
             collections={collections}
             blackListColl={blacklistColl}
-            fireChanges={fireChanges}
+            fireChanges={() => fireChanges}
         />
 
         <div className="w-full flex items-center bg-indigo-300">
@@ -279,10 +291,11 @@ export default function Home() {
           About Us
         </span>
         </div>
-
+        {/* ================ Body */}
         <section
             className="h-3/5 min-h-[10rem] w-full flex justify-center flex-grow bg-gray-800 p-4 overflow-y-scroll">
-          <div className="flex flex-wrap">
+          <div className={`flex jusity-center items-center ${isLoading ? "" : "hidden"}`}>Loading...</div>
+          <div className={`flex flex-wrap ${!isLoading ? "visible" : "hidden"}`}>
             {zhText.map((item, i) => (
                 <div key={i}>
                   <input
@@ -317,13 +330,19 @@ export default function Home() {
         <section className="flex flex-col flex-grow h-2/5 min-h-[8rem] w-full">
           <div className="flex text-white text-lg bg-blue-900 items-center py-1 px-2">
             <div className="">
-              <select name="Preset" id="" className="bg-gray-800 p-1 text-white">
+              <select
+                  name="Preset"
+                  id=""
+                  className="bg-gray-800 p-1 text-white"
+                  onChange={handlePresetChange}>
                 <option value="1" disabled hidden>
                   Presets
                 </option>
-                <option value="1">HSK 1</option>
-                <option value="2">HSK 2</option>
-                <option value="I">Intermediate</option>
+                {sampleText.map((item, i) => (
+                    <option value={item.id} key={i}>
+                      {item.title}
+                    </option>
+                ))}
               </select>
             </div>
             <div className="flex flex-row-reverse flex-grow">
@@ -348,7 +367,7 @@ export default function Home() {
           <textarea
               className="flex-grow w-full bg-gray-900 p-4"
               placeholder="Write something here"
-              defaultValue={inputText}
+              value={inputText}
               onChange={(e) => setInputText(e.target.value)}
           />
         </section>
