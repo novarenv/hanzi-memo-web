@@ -36,21 +36,24 @@ export default function Home() {
       zhText.map((x) => x.visible)
   );
 
-  let userBlackListColl = [];
+  let _userBlackListColl: string[] = [];
   let _userBlacklist: string[] = [];
   let _userWhitelist: string[] = [];
 
-  if (typeof window !== "undefined") {
-    _userBlacklist = JSON.parse(localStorage.getItem(LS_LX_BLACKLIST) || "[]");
-    _userWhitelist = JSON.parse(localStorage.getItem(LS_LX_WHITELIST) || "[]")
-    userBlackListColl = JSON.parse(localStorage.getItem(LS_BL_COLL) || "[]");
-  }
-  const [blacklist, setBlacklist] = useState<string[]>(_userBlacklist);
-  const [whitelist, setWhitelist] = useState<string[]>(_userWhitelist);
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      _userBlacklist = JSON.parse(localStorage.getItem(LS_LX_BLACKLIST) || "[]");
+      _userWhitelist = JSON.parse(localStorage.getItem(LS_LX_WHITELIST) || "[]")
+      _userBlackListColl = JSON.parse(localStorage.getItem(LS_BL_COLL) || "[]");
+    }
+  }, [])
+
+  const [blacklist, setBlacklist] = useState(_userBlacklist);
+  const [whitelist, setWhitelist] = useState(_userWhitelist);
   const [modalVis, setModalVis] = useState(false);
   const [collections, setCollections] = useState([]);
   const [aboutUsVis, setAboutUsVis] = useState(false);
-  const [blacklistColl, setBlacklistColl] = useState(userBlackListColl);
+  const [blacklistColl, setBlacklistColl] = useState(_userBlackListColl);
   const [sampleText, setSampleText] = useState<SampleText[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -182,27 +185,37 @@ export default function Home() {
   }, [mode, zhText]);
 
   useEffect(() => {
+
+    const makeSet = (a: string[], b: string) => {
+      if (!a.includes(b)) a.push(b);
+      return a;
+    };
+
     // Blacklist: when origin is visible, but visible state is false
     // TODO: Save to localStorage
-    setBlacklist(
-        zhText
-            .filter((x, i) => x.visible && x.visible != visibleStates[i])
-            .map((x) => x.id)
-            .reduce<string[]>((a, b) => {
-              if (!a.includes(b)) a.push(b);
-              return a;
-            }, [])
+    setBlacklist(() => {
+          const newBlacklist = zhText
+              .filter((x, i) => x.visible && x.visible != visibleStates[i])
+              .map((x) => x.id);
+          return [...blacklist, ...newBlacklist].reduce(makeSet, []);
+        }
+    );
+
+    setBlacklist(() => {
+          const newBlacklist = zhText
+              .filter((x, i) => x.visible && x.visible != visibleStates[i])
+              .map((x) => x.id);
+          return [...blacklist, ...newBlacklist].reduce(makeSet, []);
+        }
     );
 
     // Whitelist: when origin is not visible, but visible state is true
-    setWhitelist(
-        zhText
-            .filter((x, i) => !x.visible && x.visible != visibleStates[i])
-            .map((x) => x.id)
-            .reduce<string[]>((a, b) => {
-              if (!a.includes(b)) a.push(b);
-              return a;
-            }, [])
+    setWhitelist(() => {
+          const newWhitelist = zhText
+              .filter((x, i) => x.visible && x.visible != visibleStates[i])
+              .map((x) => x.id);
+          return [...whitelist, ...newWhitelist].reduce(makeSet, []);
+        }
     );
   }, [visibleStates]);
 
@@ -235,7 +248,7 @@ export default function Home() {
             fireChanges={() => fireChanges}
         />
 
-        <div className="w-full flex items-center bg-indigo-300">
+        <div className="w-full flex items-center bg-blue-900 text-white py-2 gap-2">
           <div
               className={`${
                   !aboutUsVis ? "hidden" : ""
@@ -273,23 +286,36 @@ export default function Home() {
           </span>
           </div>
 
-          <span className="flex-grow text-3xl text-black p-2">Hanzi Memo</span>
-
-          <div
-              className={`flex gap-2 p-2 text-black hover:bg-gray-100 hover:rounded-md
-            md:hover:cursor-pointer mr-2 border-r-indigo-500 border-r-2`}
-              onClick={() => setModalVis(!modalVis)}
-          >
-            <span>Blacklist</span>
-          </div>
+          <span className="text-xl font-bold md:text-3xl text-white p-2">
+            Hanzi Memo
+          </span>
+          <div className="flex-grow"></div>
+          <span className="shrink">
+            <span className="text-white">Sample Text: </span>
+            <br/>
+            <select
+                name="Preset"
+                id=""
+                className="bg-white p-1 text-black"
+                onChange={handlePresetChange}>
+              <option value="1" disabled hidden>
+                Presets
+              </option>
+              {sampleText.map((item, i) => (
+                  <option value={item.id} key={i}>
+                    {item.title}
+                  </option>
+              ))}
+            </select>
+          </span>
           <span
-              className="md:hidden text-black p-2 cursor-pointer hover:bg-gray-100 rounded-md"
+              className="md:hidden text-white p-2 cursor-pointer hover:bg-gray-400 hover:text-white"
               onClick={() => setAboutUsVis(!aboutUsVis)}
           >
           <TripleDots/>
         </span>
           <span
-              className="hidden md:flex text-black p-2 cursor-pointer hover:bg-gray-100 rounded-md"
+              className="hidden md:flex text-white p-2 cursor-pointer hover:bg-gray-400  hover:text-white"
               onClick={() => setAboutUsVis(!aboutUsVis)}
           >
           About Us
@@ -333,21 +359,12 @@ export default function Home() {
 
         <section className="flex flex-col flex-grow h-2/5 min-h-[8rem] w-full">
           <div className="flex text-white text-lg bg-blue-900 items-center py-1 px-2">
-            <div className="">
-              <select
-                  name="Preset"
-                  id=""
-                  className="bg-gray-800 p-1 text-white"
-                  onChange={handlePresetChange}>
-                <option value="1" disabled hidden>
-                  Presets
-                </option>
-                {sampleText.map((item, i) => (
-                    <option value={item.id} key={i}>
-                      {item.title}
-                    </option>
-                ))}
-              </select>
+
+            <div
+                className={`flex gap-2 p-2 bg-white text-black hover:bg-gray-400 hover:text-white md:hover:cursor-pointer font-bold`}
+                onClick={() => setModalVis(!modalVis)}
+            >
+              <span>Blacklist</span>
             </div>
             <div className="flex flex-row-reverse flex-grow">
               {visibilityMode.map((x, i) => (
