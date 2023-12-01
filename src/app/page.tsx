@@ -36,21 +36,24 @@ export default function Home() {
       zhText.map((x) => x.visible)
   );
 
-  let userBlackListColl = [];
+  let _userBlackListColl: string[] = [];
   let _userBlacklist: string[] = [];
   let _userWhitelist: string[] = [];
 
-  if (typeof window !== "undefined") {
-    _userBlacklist = JSON.parse(localStorage.getItem(LS_LX_BLACKLIST) || "[]");
-    _userWhitelist = JSON.parse(localStorage.getItem(LS_LX_WHITELIST) || "[]")
-    userBlackListColl = JSON.parse(localStorage.getItem(LS_BL_COLL) || "[]");
-  }
-  const [blacklist, setBlacklist] = useState<string[]>(_userBlacklist);
-  const [whitelist, setWhitelist] = useState<string[]>(_userWhitelist);
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      _userBlacklist = JSON.parse(localStorage.getItem(LS_LX_BLACKLIST) || "[]");
+      _userWhitelist = JSON.parse(localStorage.getItem(LS_LX_WHITELIST) || "[]")
+      _userBlackListColl = JSON.parse(localStorage.getItem(LS_BL_COLL) || "[]");
+    }
+  }, [])
+
+  const [blacklist, setBlacklist] = useState(_userBlacklist);
+  const [whitelist, setWhitelist] = useState(_userWhitelist);
   const [modalVis, setModalVis] = useState(false);
   const [collections, setCollections] = useState([]);
   const [aboutUsVis, setAboutUsVis] = useState(false);
-  const [blacklistColl, setBlacklistColl] = useState(userBlackListColl);
+  const [blacklistColl, setBlacklistColl] = useState(_userBlackListColl);
   const [sampleText, setSampleText] = useState<SampleText[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -182,27 +185,37 @@ export default function Home() {
   }, [mode, zhText]);
 
   useEffect(() => {
+
+    const makeSet = (a: string[], b: string) => {
+      if (!a.includes(b)) a.push(b);
+      return a;
+    };
+
     // Blacklist: when origin is visible, but visible state is false
     // TODO: Save to localStorage
-    setBlacklist(
-        zhText
-            .filter((x, i) => x.visible && x.visible != visibleStates[i])
-            .map((x) => x.id)
-            .reduce<string[]>((a, b) => {
-              if (!a.includes(b)) a.push(b);
-              return a;
-            }, [])
+    setBlacklist(() => {
+          const newBlacklist = zhText
+              .filter((x, i) => x.visible && x.visible != visibleStates[i])
+              .map((x) => x.id);
+          return [...blacklist, ...newBlacklist].reduce(makeSet, []);
+        }
+    );
+
+    setBlacklist(() => {
+          const newBlacklist = zhText
+              .filter((x, i) => x.visible && x.visible != visibleStates[i])
+              .map((x) => x.id);
+          return [...blacklist, ...newBlacklist].reduce(makeSet, []);
+        }
     );
 
     // Whitelist: when origin is not visible, but visible state is true
-    setWhitelist(
-        zhText
-            .filter((x, i) => !x.visible && x.visible != visibleStates[i])
-            .map((x) => x.id)
-            .reduce<string[]>((a, b) => {
-              if (!a.includes(b)) a.push(b);
-              return a;
-            }, [])
+    setWhitelist(() => {
+          const newWhitelist = zhText
+              .filter((x, i) => x.visible && x.visible != visibleStates[i])
+              .map((x) => x.id);
+          return [...whitelist, ...newWhitelist].reduce(makeSet, []);
+        }
     );
   }, [visibleStates]);
 
