@@ -248,7 +248,7 @@ export default function Home() {
             fireChanges={() => fireChanges}
         />
 
-        <div className="w-full flex items-center bg-blue-900 text-white">
+        <div className="w-full flex items-center bg-blue-900 text-white py-2 gap-2">
           <div
               className={`${
                   !aboutUsVis ? "hidden" : ""
@@ -286,9 +286,13 @@ export default function Home() {
           </span>
           </div>
 
-          <span className="flex-grow text-3xl text-white p-2">Hanzi Memo</span>
-          <div className="">
+          <span className="text-xl font-bold md:text-3xl text-white p-2">
+            Hanzi Memo
+          </span>
+          <div className="flex-grow"></div>
+          <span className="shrink">
             <span className="text-white">Sample Text: </span>
+            <br/>
             <select
                 name="Preset"
                 id=""
@@ -303,7 +307,7 @@ export default function Home() {
                   </option>
               ))}
             </select>
-          </div>
+          </span>
           <span
               className="md:hidden text-white p-2 cursor-pointer hover:bg-gray-400 hover:text-white"
               onClick={() => setAboutUsVis(!aboutUsVis)}
