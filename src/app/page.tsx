@@ -9,6 +9,7 @@ import ModalLayout from "@/components/Modal";
 const LS_BL_COLL = "collection_blacklist";
 const LS_LX_BLACKLIST = "lexeme_blacklist";
 const LS_LX_WHITELIST = "lexeme_whitelist";
+const LS_PREVIOUS_TEXT = "previous_text";
 
 interface ZCharView {
   id: string
@@ -25,28 +26,28 @@ export default function Home() {
     {key: "hide_all", label: "Hide All"},
   ];
 
-
-  const [inputLength, setInputLength] = useState(1);
-  const [mode, setMode] = useState(visibilityMode[1].key);
-  const [inputText, setInputText] = useState("");
-  const [debouncedInputText] = useDebounce(inputText, 500);
-
-  const [zhText, setZhText] = useState<ZCharView[]>([]);
-  const [visibleStates, setVisibleStates] = useState(
-      zhText.map((x) => x.visible)
-  );
-
   let _userBlackListColl: string[] = [];
   let _userBlacklist: string[] = [];
   let _userWhitelist: string[] = [];
+  let userPreviousText: string = "";
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       _userBlacklist = JSON.parse(localStorage.getItem(LS_LX_BLACKLIST) || "[]");
       _userWhitelist = JSON.parse(localStorage.getItem(LS_LX_WHITELIST) || "[]")
       _userBlackListColl = JSON.parse(localStorage.getItem(LS_BL_COLL) || "[]");
+      userPreviousText = localStorage.getItem(LS_PREVIOUS_TEXT) || "";
     }
   }, [])
+
+  const [mode, setMode] = useState(visibilityMode[1].key);
+  const [inputText, setInputText] = useState(userPreviousText);
+  const [debouncedInputText] = useDebounce(inputText, 500);
+
+  const [zhText, setZhText] = useState<ZCharView[]>([]);
+  const [visibleStates, setVisibleStates] = useState(
+      zhText.map((x) => x.visible)
+  );
 
   const [blacklist, setBlacklist] = useState(_userBlacklist);
   const [whitelist, setWhitelist] = useState(_userWhitelist);
@@ -59,41 +60,17 @@ export default function Home() {
 
 
   useEffect(() => {
+    setInputText(localStorage.getItem(LS_PREVIOUS_TEXT) || "")
     getTexts().then((res) => {
       setSampleText(res.data)
     })
   }, [])
 
   useEffect(() => {
-    setInputLength(debouncedInputText.length);
-  }, [debouncedInputText]);
-
-  useEffect(() => {
     setVisibleStates(zhText.map((x, i) => {
       return isVisible(mode, x.visible)
     }))
   }, [mode, zhText])
-
-  useEffect(() => {
-    // Blacklist: when origin is visible, but visible state is false
-    setBlacklist(zhText
-        .filter((x, i) => x.visible && x.visible != visibleStates[i])
-        .map(x => x.id)
-        .reduce<string[]>((a, b) => {
-          if (!a.includes(b)) a.push(b);
-          return a;
-        }, []))
-
-    // Whitelist: when origin is not visible, but visible state is true
-    setWhitelist(zhText
-        .filter((x, i) => !x.visible && x.visible != visibleStates[i])
-        .map(x => x.id)
-        .reduce<string[]>((a, b) => {
-          if (!a.includes(b)) a.push(b);
-          return a;
-        }, []))
-
-  }, [visibleStates])
 
   useEffect(() => {
     localStorage.setItem(LS_LX_BLACKLIST, JSON.stringify(blacklist));
@@ -164,12 +141,10 @@ export default function Home() {
   }
 
   useEffect(() => {
-    console.log("debouncing")
-    //TODO: Fetch data, then set zhText
-    setInputLength(debouncedInputText.length);
+    // FIX: dont fire on init
     if (debouncedInputText.trim().length != 0) {
-      console.log("Input empty, is firing?")
       fireChanges();
+      localStorage.setItem(LS_PREVIOUS_TEXT, debouncedInputText)
     }
   }, [debouncedInputText]);
 
@@ -201,18 +176,10 @@ export default function Home() {
         }
     );
 
-    setBlacklist(() => {
-          const newBlacklist = zhText
-              .filter((x, i) => x.visible && x.visible != visibleStates[i])
-              .map((x) => x.id);
-          return [...blacklist, ...newBlacklist].reduce(makeSet, []);
-        }
-    );
-
     // Whitelist: when origin is not visible, but visible state is true
     setWhitelist(() => {
           const newWhitelist = zhText
-              .filter((x, i) => x.visible && x.visible != visibleStates[i])
+              .filter((x, i) => !x.visible && x.visible != visibleStates[i])
               .map((x) => x.id);
           return [...whitelist, ...newWhitelist].reduce(makeSet, []);
         }
