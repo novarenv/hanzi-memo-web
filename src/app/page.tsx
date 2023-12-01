@@ -75,27 +75,6 @@ export default function Home() {
   }, [mode, zhText])
 
   useEffect(() => {
-    // Blacklist: when origin is visible, but visible state is false
-    setBlacklist(zhText
-        .filter((x, i) => x.visible && x.visible != visibleStates[i])
-        .map(x => x.id)
-        .reduce<string[]>((a, b) => {
-          if (!a.includes(b)) a.push(b);
-          return a;
-        }, []))
-
-    // Whitelist: when origin is not visible, but visible state is true
-    setWhitelist(zhText
-        .filter((x, i) => !x.visible && x.visible != visibleStates[i])
-        .map(x => x.id)
-        .reduce<string[]>((a, b) => {
-          if (!a.includes(b)) a.push(b);
-          return a;
-        }, []))
-
-  }, [visibleStates])
-
-  useEffect(() => {
     localStorage.setItem(LS_LX_BLACKLIST, JSON.stringify(blacklist));
     localStorage.setItem(LS_LX_WHITELIST, JSON.stringify(whitelist));
   }, [whitelist, blacklist])
@@ -201,18 +180,10 @@ export default function Home() {
         }
     );
 
-    setBlacklist(() => {
-          const newBlacklist = zhText
-              .filter((x, i) => x.visible && x.visible != visibleStates[i])
-              .map((x) => x.id);
-          return [...blacklist, ...newBlacklist].reduce(makeSet, []);
-        }
-    );
-
     // Whitelist: when origin is not visible, but visible state is true
     setWhitelist(() => {
           const newWhitelist = zhText
-              .filter((x, i) => x.visible && x.visible != visibleStates[i])
+              .filter((x, i) => !x.visible && x.visible != visibleStates[i])
               .map((x) => x.id);
           return [...whitelist, ...newWhitelist].reduce(makeSet, []);
         }
