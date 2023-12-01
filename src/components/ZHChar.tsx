@@ -44,7 +44,7 @@ export function ZHChar(props: { zh: string, pinyin: string, is_visible: boolean 
                 : <span>{props.zh}</span>
             }
           </div>
-          <div className={`${!show ? "bg-gray-800 border border-solid border-gray-600 rounded-sm" : ""}`}>
+          <div className={`${!show ? " text-white bg-gray-800 border border-solid border-gray-600 rounded-sm" : ""}`}>
                     <span className={`text-lg  ${show ? "visible" : "invisible"}`}>
                         {marked_pinyin}
                     </span>
