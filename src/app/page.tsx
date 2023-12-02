@@ -6,6 +6,7 @@ import {Header} from "@/components/Header";
 import {ZHChar} from "@/components/ZHChar";
 import {Collection, getCollections, getPinyins, getTexts, SampleText} from "./api/backend";
 import ModalLayout from "@/components/Modal";
+import {patchConsoleError} from "next/dist/client/components/react-dev-overlay/internal/helpers/hydration-error-info";
 
 const LS_BL_COLL = "collection_blacklist";
 const LS_LX_BLACKLIST = "lexeme_blacklist";
@@ -27,24 +28,29 @@ export default function Home() {
     {key: "hide_all", label: "Hide All"},
   ];
 
+  const [firstRender, setFirstRender] = useState(true);
   let _userBlackListColl: string[] = [];
   let _userBlacklist: string[] = [];
   let _userWhitelist: string[] = [];
   let userPreviousText: string = "";
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    if (typeof window !== "undefined" && firstRender) {
       _userBlacklist = JSON.parse(localStorage.getItem(LS_LX_BLACKLIST) || "[]");
       _userWhitelist = JSON.parse(localStorage.getItem(LS_LX_WHITELIST) || "[]")
       _userBlackListColl = JSON.parse(localStorage.getItem(LS_BL_COLL) || "[]");
       userPreviousText = localStorage.getItem(LS_PREVIOUS_TEXT) || "";
+
+      setInputText(userPreviousText)
+      setWhitelist(_userWhitelist)
+      setBlacklist(_userBlacklist)
+      setFirstRender(false)
     }
   }, [])
 
   const [mode, setMode] = useState(visibilityMode[1].key);
   const [inputText, setInputText] = useState(userPreviousText);
   const [debouncedInputText] = useDebounce(inputText, 500);
-
   const [zhText, setZhText] = useState<ZCharView[]>([]);
   const [visibleStates, setVisibleStates] = useState(
       zhText.map((x) => x.visible)
@@ -58,16 +64,6 @@ export default function Home() {
   // const [sampleText, setSampleText] = useState<SampleText[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-
-  useEffect(() => {
-    setInputText(localStorage.getItem(LS_PREVIOUS_TEXT) || "")
-  }, [])
-
-  useEffect(() => {
-    setVisibleStates(zhText.map((x, i) => {
-      return isVisible(mode, x.visible)
-    }))
-  }, [mode, zhText])
 
   useEffect(() => {
     localStorage.setItem(LS_LX_BLACKLIST, JSON.stringify(blacklist));
@@ -90,7 +86,6 @@ export default function Home() {
   }, []);
 
   function fireChanges() {
-    console.log("Firing changes")
     setIsLoading(true);
     const collectionBL = JSON.parse(localStorage.getItem(LS_BL_COLL) || "[]")
     getPinyins(inputText, blacklist, whitelist, collectionBL)
@@ -125,9 +120,6 @@ export default function Home() {
   }, [debouncedInputText]);
 
   useEffect(() => {
-  }, [modalVis]);
-
-  useEffect(() => {
     setVisibleStates(
         zhText.map((x, i) => {
           return isVisible(mode, x.visible);
@@ -136,6 +128,7 @@ export default function Home() {
   }, [mode, zhText]);
 
   useEffect(() => {
+    if (firstRender) return;
 
     const makeSet = (a: string[], b: string) => {
       if (!a.includes(b)) a.push(b);
@@ -174,7 +167,6 @@ export default function Home() {
         })
     );
   }
-
 
   return (
       <main className="flex min-h-screen flex-col items-center justify-between l:p-24">
