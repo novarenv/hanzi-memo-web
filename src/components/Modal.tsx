@@ -92,24 +92,25 @@ export const ModalLayout = (props: {
                   <span className="sr-only">Close modal</span>
                 </button>
               </div>
-              <div className="p-4 md:p-5 space-y-4">
+              <div className="p-4 flex flex-col gap-2">
                 {hskList.map((hsk, iHsk) => {
                   return (
                       <div
-                          className="flex flex-grow items-center px-2 py-4 w-full border-b-2 pr-4 cursor-pointer"
+                          className="flex flex-grow items-center px-4 py-2 w-full cursor-pointer bg-gray-800"
                           onClick={() => onCheckboxChange(iHsk)}
                           key={iHsk}
                       >
                         <div className="flex flex-col flex-grow justify-center">
-                          <span className="text-2xl p-2">{hsk.name}</span>
-                          <div className="text-xl mt-1">
-                            {hsk.preview.map((hz, iHz) => {
+                          <span className="text-2xl">{hsk.name}</span>
+                          <div className="flex text-xl overflow-hidden gap-2">
+                            {hsk.preview.slice(0, 8).map((hz, iHz) => {
                               return (
-                                  <span className="p-2" key={iHz}>
-                            {hz.zh_sc}
-                          </span>
+                                  <span key={iHz}>
+                                      {hz.zh_sc}
+                                  </span>
                               );
                             })}
+                            <span>...</span>
                           </div>
                         </div>
                         <div className="flex justify-center items-center">
