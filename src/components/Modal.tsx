@@ -3,12 +3,34 @@ import {Dispatch, SetStateAction, useEffect, useState} from "react";
 
 const LS_BL_COLL = "collection_blacklist";
 
+
+function CloseIcon() {
+  return <>
+    <svg
+        className="w-3 h-3"
+        aria-hidden="true"
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 14 14"
+    >
+      <path
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="2"
+          d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+      />
+    </svg>
+  </>
+}
+
+
 export const ModalLayout = (props: {
-  modalVis: boolean;
-  setModalVis: Dispatch<SetStateAction<boolean>>;
+  isVisible: boolean;
   collections: Collection[];
   blackListColl: string[];
-  fireChanges: () => void,
+  onOK: (selected: string[]) => void,
+  onCancel: () => void,
 }) => {
   const [hskList, setHskList] = useState<Collection[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
@@ -46,9 +68,7 @@ export const ModalLayout = (props: {
   }
 
   const acceptChanges = () => {
-    localStorage.setItem(LS_BL_COLL, JSON.stringify(selected));
-    props.setModalVis(!props.modalVis);
-    props.fireChanges();
+    props.onOK(selected);
   };
 
   return (
@@ -56,7 +76,7 @@ export const ModalLayout = (props: {
         <div
             id="default-modal"
             aria-hidden="true"
-            className={`${props.modalVis ? "" : "hidden"}
+            className={`${props.isVisible ? "" : "hidden"}
         overflow-y-auto overflow-x-hidden fixed z-50 max-w-max mx-auto min-w-[40vw]
         justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full`}
         >
@@ -72,23 +92,9 @@ export const ModalLayout = (props: {
                     className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg
                 text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
                     data-modal-hide="default-modal"
-                    onClick={() => props.setModalVis(!props.modalVis)}
+                    onClick={props.onCancel}
                 >
-                  <svg
-                      className="w-3 h-3"
-                      aria-hidden="true"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 14 14"
-                  >
-                    <path
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                    />
-                  </svg>
+                  <CloseIcon/>
                   <span className="sr-only">Close modal</span>
                 </button>
               </div>
@@ -146,9 +152,7 @@ export const ModalLayout = (props: {
                     className="ms-3 text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 rounded-lg border
               border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500
               dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600"
-                    onClick={() => {
-                      props.setModalVis(!props.modalVis);
-                    }}
+                    onClick={props.onCancel}
                 >
                   Revert
                 </button>

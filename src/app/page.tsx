@@ -6,7 +6,6 @@ import {Header} from "@/components/Header";
 import {ZHChar} from "@/components/ZHChar";
 import {Collection, getCollections, getPinyins, getTexts, SampleText} from "./api/backend";
 import ModalLayout from "@/components/Modal";
-import {patchConsoleError} from "next/dist/client/components/react-dev-overlay/internal/helpers/hydration-error-info";
 
 const LS_BL_COLL = "collection_blacklist";
 const LS_LX_BLACKLIST = "lexeme_blacklist";
@@ -58,7 +57,7 @@ export default function Home() {
 
   const [blacklist, setBlacklist] = useState(_userBlacklist);
   const [whitelist, setWhitelist] = useState(_userWhitelist);
-  const [modalVis, setModalVis] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
   const [collections, setCollections] = useState<Collection[]>([]);
   const [blacklistColl, setBlacklistColl] = useState(_userBlackListColl);
   // const [sampleText, setSampleText] = useState<SampleText[]>([]);
@@ -168,14 +167,20 @@ export default function Home() {
     );
   }
 
+  function onCollectionModalOK(selectedCollection: string[]) {
+    localStorage.setItem(LS_BL_COLL, JSON.stringify(selectedCollection))
+    setModalVisible(false)
+    fireChanges()
+  }
+
   return (
       <main className="flex min-h-screen flex-col items-center justify-between l:p-24">
         <ModalLayout
-            modalVis={modalVis}
-            setModalVis={setModalVis}
+            isVisible={modalVisible}
             collections={collections}
             blackListColl={blacklistColl}
-            fireChanges={() => fireChanges}
+            onOK={onCollectionModalOK}
+            onCancel={() => setModalVisible(false)}
         />
         <Header onPresetChange={(t) => setInputText(t)}/>
         {/* ================ Body */}
@@ -219,7 +224,7 @@ export default function Home() {
 
             <div
                 className={`flex gap-2 p-2 bg-white text-black hover:bg-gray-400 hover:text-white md:hover:cursor-pointer font-bold`}
-                onClick={() => setModalVis(!modalVis)}
+                onClick={() => setModalVisible(!modalVisible)}
             >
               <span>Blacklist</span>
             </div>
