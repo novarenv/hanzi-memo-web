@@ -117,7 +117,7 @@ export default function Home() {
   }
 
   useEffect(() => {
-    // FIX: dont fire on init
+    // FIX: don't fire on init
     if (debouncedInputText.trim().length != 0) {
       fireChanges();
       localStorage.setItem(LS_PREVIOUS_TEXT, debouncedInputText)
