@@ -1,3 +1,4 @@
+import {Collection} from "@/app/api/backend";
 import {Dispatch, SetStateAction, useEffect, useState} from "react";
 
 const LS_BL_COLL = "collection_blacklist";
@@ -5,26 +6,11 @@ const LS_BL_COLL = "collection_blacklist";
 export const ModalLayout = (props: {
   modalVis: boolean;
   setModalVis: Dispatch<SetStateAction<boolean>>;
-  collections: {
-    id: string;
-    name: string;
-    hz: string[];
-  }[];
+  collections: Collection[];
   blackListColl: string[];
   fireChanges: () => void,
 }) => {
-  const [hskList, setHskList] = useState([
-    {
-      id: "1",
-      title: "HSK 1",
-      hz: ["狐", "狸"],
-    },
-    {
-      id: "2",
-      title: "HSK 2",
-      hz: ["狐", "狸"],
-    },
-  ]);
+  const [hskList, setHskList] = useState<Collection[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
   const [hskCheck, setHskCheck] = useState(props.collections.map((x) => false));
 
@@ -35,8 +21,8 @@ export const ModalLayout = (props: {
     setHskList(
         props.collections.map((x) => ({
           id: x.id,
-          title: x.name,
-          hz: ["狐", "狸"],
+          name: x.name,
+          preview: x.preview,
         }))
     );
 
@@ -114,12 +100,12 @@ export const ModalLayout = (props: {
                         key={iHsk}
                     >
                       <div className="flex flex-col flex-grow justify-center">
-                        <span className="text-2xl p-2">{hsk.title}</span>
+                        <span className="text-2xl p-2">{hsk.name}</span>
                         <div className="text-xl mt-1">
-                          {hsk.hz.map((hz, iHz) => {
+                          {hsk.preview.map((hz, iHz) => {
                             return (
                                 <span className="p-2" key={iHz}>
-                            {hz}
+                            {hz.zh_sc}
                           </span>
                             );
                           })}

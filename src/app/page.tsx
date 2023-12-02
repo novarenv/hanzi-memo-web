@@ -4,7 +4,7 @@ import {useEffect, useState} from "react";
 import {useDebounce} from "use-debounce";
 import {Header} from "@/components/Header";
 import {ZHChar} from "@/components/ZHChar";
-import {getCollecitons, getPinyins, getTexts, SampleText} from "./api/backend";
+import {Collection, getCollections, getPinyins, getTexts, SampleText} from "./api/backend";
 import ModalLayout from "@/components/Modal";
 
 const LS_BL_COLL = "collection_blacklist";
@@ -53,7 +53,7 @@ export default function Home() {
   const [blacklist, setBlacklist] = useState(_userBlacklist);
   const [whitelist, setWhitelist] = useState(_userWhitelist);
   const [modalVis, setModalVis] = useState(false);
-  const [collections, setCollections] = useState([]);
+  const [collections, setCollections] = useState<Collection[]>([]);
   const [blacklistColl, setBlacklistColl] = useState(_userBlackListColl);
   // const [sampleText, setSampleText] = useState<SampleText[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -82,10 +82,9 @@ export default function Home() {
   }
 
   useEffect(() => {
-    getCollecitons()
-        .then((res) => res.json())
+    getCollections()
         .then((data) => {
-          setCollections(data.data.data);
+          setCollections(data.data);
         })
         .catch((err) => console.log("Err", err));
   }, []);
