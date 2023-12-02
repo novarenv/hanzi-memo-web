@@ -1,8 +1,9 @@
 "use client";
 
-import {ChangeEvent, useEffect, useState} from "react";
+import {useEffect, useState} from "react";
 import {useDebounce} from "use-debounce";
-import {ZHChar} from "../components/ZHChar";
+import {Header} from "@/components/Header";
+import {ZHChar} from "@/components/ZHChar";
 import {getCollecitons, getPinyins, getTexts, SampleText} from "./api/backend";
 import ModalLayout from "@/components/Modal";
 
@@ -53,17 +54,13 @@ export default function Home() {
   const [whitelist, setWhitelist] = useState(_userWhitelist);
   const [modalVis, setModalVis] = useState(false);
   const [collections, setCollections] = useState([]);
-  const [aboutUsVis, setAboutUsVis] = useState(false);
   const [blacklistColl, setBlacklistColl] = useState(_userBlackListColl);
-  const [sampleText, setSampleText] = useState<SampleText[]>([]);
+  // const [sampleText, setSampleText] = useState<SampleText[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
 
   useEffect(() => {
     setInputText(localStorage.getItem(LS_PREVIOUS_TEXT) || "")
-    getTexts().then((res) => {
-      setSampleText(res.data)
-    })
   }, [])
 
   useEffect(() => {
@@ -77,26 +74,6 @@ export default function Home() {
     localStorage.setItem(LS_LX_WHITELIST, JSON.stringify(whitelist));
   }, [whitelist, blacklist])
 
-  const TripleDots = () => {
-    return (
-        <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="feather feather-more-vertical"
-        >
-          <circle cx="12" cy="12" r="1"/>
-          <circle cx="12" cy="5" r="1"/>
-          <circle cx="12" cy="19" r="1"/>
-        </svg>
-    );
-  };
 
   function isVisible(mode: string, visibility: boolean): boolean {
     if (mode == "show_all") return true;
@@ -199,11 +176,6 @@ export default function Home() {
     );
   }
 
-  function handlePresetChange(e: ChangeEvent<HTMLSelectElement>) {
-    const x = sampleText.find(x => x.id === e.target.value);
-    console.log(x)
-    setInputText(x ? x.text : "")
-  }
 
   return (
       <main className="flex min-h-screen flex-col items-center justify-between l:p-24">
@@ -214,80 +186,7 @@ export default function Home() {
             blackListColl={blacklistColl}
             fireChanges={() => fireChanges}
         />
-
-        <div className="w-full flex items-center bg-blue-900 text-white py-2 gap-2">
-          <div
-              className={`${
-                  !aboutUsVis ? "hidden" : ""
-              } fixed top-0 right-0 min-w-[10vm] max-w-[80vm] p-8 z-50 bg-gray-700
-          mt-4 mr-4 rounded-lg border-2`}
-          >
-            <div
-                className="flex justify-end cursor-pointer"
-                onClick={() => setAboutUsVis(!aboutUsVis)}
-            >
-              <svg
-                  className="w-3 h-3"
-                  aria-hidden="true"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 14 14"
-              >
-                <path
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                />
-              </svg>
-            </div>
-            <div className="flex flex-col justify-center text-xl">
-              <span className="mb-4 font-bold">Made with love by:</span>
-              <span>Novaren Veraldo</span>
-              <span>Gumelar Purnama Nugraha</span>
-              <span>Ndombasi D. J. Andre</span>
-            </div>
-            <span className="flex justify-center mt-12 text-md font-bold">
-            @NUIST
-          </span>
-          </div>
-
-          <span className="text-xl font-bold md:text-3xl text-white p-2">
-            Hanzi Memo
-          </span>
-          <div className="flex-grow"></div>
-          <span className="shrink">
-            <span className="text-white">Sample Text: </span>
-            <br/>
-            <select
-                name="Preset"
-                id=""
-                className="bg-white p-1 text-black"
-                onChange={handlePresetChange}>
-              <option value="1" disabled hidden>
-                Presets
-              </option>
-              {sampleText.map((item, i) => (
-                  <option value={item.id} key={i}>
-                    {item.title}
-                  </option>
-              ))}
-            </select>
-          </span>
-          <span
-              className="md:hidden text-white p-2 cursor-pointer hover:bg-gray-400 hover:text-white"
-              onClick={() => setAboutUsVis(!aboutUsVis)}
-          >
-          <TripleDots/>
-        </span>
-          <span
-              className="hidden md:flex text-white p-2 cursor-pointer hover:bg-gray-400  hover:text-white"
-              onClick={() => setAboutUsVis(!aboutUsVis)}
-          >
-          About Us
-        </span>
-        </div>
+        <Header onPresetChange={(t) => setInputText(t)}/>
         {/* ================ Body */}
         <section
             className="h-3/5 min-h-[10rem] w-full flex justify-center flex-grow bg-gray-800 p-4 overflow-y-scroll">
