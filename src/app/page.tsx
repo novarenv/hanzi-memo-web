@@ -6,6 +6,8 @@ import {Header} from "@/components/Header";
 import {ZHChar} from "@/components/ZHChar";
 import {Collection, getCollections, getPinyins, getTexts, SampleText} from "./api/backend";
 import ModalLayout from "@/components/Modal";
+import {number} from "prop-types";
+import {white} from "next/dist/lib/picocolors";
 
 const LS_BL_COLL = "collection_blacklist";
 const LS_LX_BLACKLIST = "lexeme_blacklist";
@@ -71,10 +73,14 @@ export default function Home() {
   }, [whitelist, blacklist])
 
 
-  function isVisible(mode: string, visibility: boolean): boolean {
+  function isVisible(mode: string, item: ZCharView): boolean {
     if (mode == "show_all") return true;
     if (mode == "hide_all") return false;
-    return visibility;
+
+    if (blacklist.includes(item.id)) return false;
+    if (whitelist.includes(item.id)) return true;
+
+    return item.visible;
   }
 
   useEffect(() => {
@@ -122,51 +128,59 @@ export default function Home() {
   useEffect(() => {
     setVisibleStates(
         zhText.map((x, i) => {
-          return isVisible(mode, x.visible);
+          return isVisible(mode, x);
         })
     );
   }, [mode, zhText]);
 
-  useEffect(() => {
-    if (firstRender) return;
-
+  function getLists(original: string[]): string[] {
     const makeSet = (a: string[], b: string) => {
       if (!a.includes(b)) a.push(b);
       return a;
     };
 
-    // Blacklist: when origin is visible, but visible state is false
-    // TODO: Save to localStorage
-    setBlacklist(() => {
-          const newBlacklist = zhText
-              .filter((x, i) => x.visible && x.visible != visibleStates[i])
-              .map((x) => x.id);
-          return [...blacklist, ...newBlacklist].reduce(makeSet, []);
-        }
-    );
+    const allId = zhText.map(x => x.id)
+    const unrelated = original.filter(x => !allId.includes(x))
+    const listFromRequest = zhText
+        .filter(x => original.includes(x.id))
+        .map(x => x.id);
 
-    // Whitelist: when origin is not visible, but visible state is true
-    setWhitelist(() => {
-          const newWhitelist = zhText
-              .filter((x, i) => !x.visible && x.visible != visibleStates[i])
-              .map((x) => x.id);
-          return [...whitelist, ...newWhitelist].reduce(makeSet, []);
-        }
-    );
-  }, [visibleStates]);
+    return [
+      ...unrelated,
+      ...listFromRequest
+    ].reduce(makeSet, [])
+  }
 
-  // FIXME: compare id instead of zh
-  function updateCheckbox(name: string, value: boolean) {
-    const changes = zhText.map((x, i) => x.id == name);
-    setVisibleStates((prev) =>
-        prev.map((original_state, i) => {
+
+  // =================== Handler
+  function updateCheckbox(item: ZCharView, checked: boolean) {
+    const changes = zhText.map((x, i) => x.id == item.id);
+    setVisibleStates(
+        visibleStates.map((ori_state, i) => {
           if (changes[i]) {
-            return !value;
+            return !checked;
           }
-          return original_state;
+          return ori_state;
         })
     );
+
+    // FIXME: this didnt differentiate between words that blacklisted from the collection
+    // TODO: get exclusive blacklist/white list from backend
+    let newBlacklist = getLists(blacklist);
+    let newWhitelist = getLists(whitelist);
+
+    if (checked) {
+      newBlacklist.push(item.id)
+      newWhitelist = newWhitelist.filter(x => x !== item.id)
+    } else {
+      newBlacklist = newBlacklist.filter(x => x !== item.id)
+      newWhitelist.push(item.id)
+    }
+
+    setBlacklist(newBlacklist)
+    setWhitelist(newWhitelist)
   }
+
 
   function onCollectionModalOK(selectedCollection: string[]) {
     localStorage.setItem(LS_BL_COLL, JSON.stringify(selectedCollection))
@@ -200,7 +214,7 @@ export default function Home() {
                       disabled={mode != "smart"}
                       name={item.zh}
                       checked={!visibleStates[i]}
-                      onChange={(e) => updateCheckbox(item.id, e.target.checked)}
+                      onChange={(e) => updateCheckbox(item, e.target.checked)}
                   />
                   <label
                       htmlFor={`toggle-${item.id}-i`}
