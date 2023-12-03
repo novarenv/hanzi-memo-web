@@ -7,12 +7,13 @@ enum TriggerMode {
 
 const envTriggerMode = process.env.NEXT_PUBLIC_TRIGGER_MODE as TriggerMode;
 const TRIGGER_MODE = envTriggerMode ?? TriggerMode.Debounce;
+const CHUNK_SIZE = parseInt(process.env.NEXT_PUBLIC_CHUNK_SIZE ?? "20");
 
 import {useEffect, useState} from "react";
 import {useDebounce} from "use-debounce";
 import {Header} from "@/components/Header";
 import {ZHChar} from "@/components/ZHChar";
-import {Collection, getCollections, getPinyins, getTexts, SampleText} from "./api/backend";
+import {Collection, getCollections, getPinyins, Segment} from "./api/backend";
 import ModalLayout from "@/components/Modal";
 
 const LS_BL_COLL = "collection_blacklist";
@@ -20,12 +21,13 @@ const LS_LX_BLACKLIST = "lexeme_blacklist";
 const LS_LX_WHITELIST = "lexeme_whitelist";
 const LS_PREVIOUS_TEXT = "previous_text";
 
-interface ZCharView {
+interface ZHCharView {
   id: string
   zh: string
   pinyin: string
   visible: boolean
 }
+
 
 // TODO: Apply cosmetics
 export default function Home() {
@@ -59,7 +61,8 @@ export default function Home() {
   const [mode, setMode] = useState(visibilityMode[1].key);
   const [inputText, setInputText] = useState(userPreviousText);
   const [debouncedInputText] = useDebounce(inputText, 1000);
-  const [zhText, setZhText] = useState<ZCharView[]>([]);
+  const [job, setJob] = useState<Segment[][]>([]);
+  const [zhText, setZhText] = useState<ZHCharView[]>([]);
   const [visibleStates, setVisibleStates] = useState(
       zhText.map((x) => x.visible)
   );
@@ -69,7 +72,6 @@ export default function Home() {
   const [modalVisible, setModalVisible] = useState(false);
   const [collections, setCollections] = useState<Collection[]>([]);
   const [blacklistColl, setBlacklistColl] = useState(_userBlackListColl);
-  // const [sampleText, setSampleText] = useState<SampleText[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
 
@@ -79,7 +81,7 @@ export default function Home() {
   }, [whitelist, blacklist])
 
 
-  function isVisible(mode: string, item: ZCharView): boolean {
+  function isVisible(mode: string, item: ZHCharView): boolean {
     if (mode == "show_all") return true;
     if (mode == "hide_all") return false;
 
@@ -100,27 +102,44 @@ export default function Home() {
   function fireChanges() {
     setIsLoading(true);
     const collectionBL = JSON.parse(localStorage.getItem(LS_BL_COLL) || "[]")
-    getPinyins(inputText, blacklist, whitelist, collectionBL)
-        .then((res) => {
-          setIsLoading(false);
-          setZhText(res.data.map((s) => {
-            let pinyin_id = `--no-id-${s.segment}--`;
-            let pinyin_text = s.segment;
+    const chunks = chunkify(inputText, CHUNK_SIZE).map((x, i) => ({text: x, index: i}));
+    setJob(new Array(chunks.length).fill([]))
+    chunks.forEach(chunk => {
+      getPinyins(chunk.text, blacklist, whitelist, collectionBL)
+          .then((res) => {
+            setJob((prev) => {
+              return [...prev.slice(0, chunk.index), res.data, ...prev.slice(chunk.index + 1)]
+            })
+          })
+    })
 
-            if (s.pinyin.length > 0) {
-              pinyin_id = s.pinyin[0].id;
-              pinyin_text = s.pinyin[0].pinyin ?? "";
-            }
+  }
 
-            return {
-              id: pinyin_id,
-              pinyin: pinyin_text,
-              zh: s.segment,
-              visible: s.strict_visible,
-            }
-          }))
-        })
-        .catch((err: any) => console.log("Err", err));
+  useEffect(() => {
+    const flatSegment = job.reduce((a, b) => [...a, ...b], [])
+    setZhText(flatSegment.map(s => {
+      let pinyin_id = `--no-id-${s.segment}--`;
+      let pinyin_text = s.segment;
+
+      if (s.pinyin.length > 0) {
+        pinyin_id = s.pinyin[0].id;
+        pinyin_text = s.pinyin[0].pinyin ?? "";
+      }
+
+      return {
+        id: pinyin_id,
+        pinyin: pinyin_text,
+        zh: s.segment,
+        visible: s.strict_visible,
+      }
+    }))
+    setIsLoading(false);
+  }, [job])
+
+  function chunkify(text: string, size: number): string[] {
+    const re = new RegExp(`.{1,${size}}`, "g")
+    console.log(re)
+    return text.match(re) as string[]
   }
 
   useEffect(() => {
@@ -161,7 +180,7 @@ export default function Home() {
 
 
   // =================== Handler
-  function updateCheckbox(item: ZCharView, checked: boolean) {
+  function updateCheckbox(item: ZHCharView, checked: boolean) {
     const changes = zhText.map((x, i) => x.id == item.id);
     setVisibleStates(
         visibleStates.map((ori_state, i) => {
@@ -208,7 +227,7 @@ export default function Home() {
         <Header onPresetChange={(t) => setInputText(t)}/>
         {/* ================ Body */}
         <section
-            className="h-3/5 min-h-[10rem] w-full flex justify-center flex-grow bg-gray-800 p-4 overflow-y-scroll">
+            className="h-3/5 max-h-[70vw] min-h-[10rem] w-full flex justify-center flex-grow bg-gray-800 p-4 overflow-y-scroll">
           <div className={`flex jusity-center items-center ${isLoading ? "" : "hidden"}`}>Loading...</div>
           <div className={`flex flex-wrap ${!isLoading ? "visible" : "hidden"}`}>
             {zhText.map((item, i) => (

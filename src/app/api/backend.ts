@@ -20,7 +20,7 @@ interface Pinyin {
   pinyin?: string
 }
 
-interface Segment {
+export interface Segment {
   segment: string
   is_visible: boolean
   strict_visible: boolean
