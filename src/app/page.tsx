@@ -1,13 +1,19 @@
 "use client";
 
+enum TriggerMode {
+  Debounce = "DEBOUNCE",
+  Button = "BUTTON",
+}
+
+const envTriggerMode = process.env.NEXT_PUBLIC_TRIGGER_MODE as TriggerMode;
+const TRIGGER_MODE = envTriggerMode ?? TriggerMode.Debounce;
+
 import {useEffect, useState} from "react";
 import {useDebounce} from "use-debounce";
 import {Header} from "@/components/Header";
 import {ZHChar} from "@/components/ZHChar";
 import {Collection, getCollections, getPinyins, getTexts, SampleText} from "./api/backend";
 import ModalLayout from "@/components/Modal";
-import {number} from "prop-types";
-import {white} from "next/dist/lib/picocolors";
 
 const LS_BL_COLL = "collection_blacklist";
 const LS_LX_BLACKLIST = "lexeme_blacklist";
@@ -52,7 +58,7 @@ export default function Home() {
 
   const [mode, setMode] = useState(visibilityMode[1].key);
   const [inputText, setInputText] = useState(userPreviousText);
-  const [debouncedInputText] = useDebounce(inputText, 500);
+  const [debouncedInputText] = useDebounce(inputText, 1000);
   const [zhText, setZhText] = useState<ZCharView[]>([]);
   const [visibleStates, setVisibleStates] = useState(
       zhText.map((x) => x.visible)
@@ -118,6 +124,8 @@ export default function Home() {
   }
 
   useEffect(() => {
+    if (TRIGGER_MODE == TriggerMode.Button) return;
+
     // FIX: don't fire on init
     if (debouncedInputText.trim().length != 0) {
       fireChanges();
@@ -234,8 +242,8 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="flex flex-col flex-grow h-2/5 min-h-[8rem] w-full">
-          <div className="flex text-white text-lg bg-blue-900 items-center py-1 px-2">
+        <section className="flex flex-col flex-grow h-2/5 min-h-[8rem] w-full relative">
+          <div className="flex text-white text-lg bg-blue-900 items-center">
 
             <div
                 className={`flex gap-2 p-2 bg-white text-black hover:bg-gray-400 hover:text-white md:hover:cursor-pointer font-bold`}
@@ -246,7 +254,7 @@ export default function Home() {
             <div className="flex flex-row-reverse flex-grow">
               {visibilityMode.map((x, i) => (
                   <label
-                      className={`flex gap-2 py-1 px-2 hover:bg-gray-400 hover:cursor-pointer ${
+                      className={`flex gap-2 h-full p-2 hover:bg-gray-400 hover:cursor-pointer ${
                           mode == x.key ? "bg-gray-200 text-black font-bold" : ""
                       }`}
                       key={i}
@@ -262,12 +270,20 @@ export default function Home() {
               ))}
             </div>
           </div>
-          <textarea
-              className="flex-grow w-full bg-gray-900 p-4"
-              placeholder="Write something here"
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-          />
+          <div className="flex-grow">
+            <textarea
+                className="w-full h-full bg-gray-900 p-4"
+                placeholder="Write something here"
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}/>
+          </div>
+          {TRIGGER_MODE == TriggerMode.Button &&
+              <button
+                  className="p-2 bg-white text-black font-bold absolute bottom-5 right-5 hover:bg-gray-400 hover:text-white"
+                  onClick={() => fireChanges()}>
+                  Analyze
+              </button>
+          }
         </section>
       </main>
   );
