@@ -228,9 +228,9 @@ export default function Home() {
         <Header onPresetChange={(t) => setInputText(t)}/>
         {/* ================ Body */}
         <section
-            className="h-3/5 max-h-[70vw] min-h-[10rem] w-full flex justify-center flex-grow bg-gray-800 p-4 overflow-y-scroll">
+            className="h-3/5 max-h-[70vw] min-h-[10rem] w-full flex justify-center flex-grow bg-gray-800 p-4 overflow-y-scroll items-start">
           <div className={`flex jusity-center items-center ${isLoading ? "" : "hidden"}`}>Loading...</div>
-          <div className={`flex flex-wrap ${!isLoading ? "visible" : "hidden"}`}>
+          <div className={`flex flex-wrap items-start ${!isLoading ? "visible" : "hidden"}`}>
             {zhText.map((item, i) => (
                 <div key={i}>
                   <input
