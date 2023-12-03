@@ -43,6 +43,7 @@ export default function Home() {
       setInputText(userPreviousText)
       setWhitelist(_userWhitelist)
       setBlacklist(_userBlacklist)
+      setBlacklistColl(_userBlackListColl)
       setFirstRender(false)
     }
   }, [])

@@ -1,7 +1,5 @@
 import {Collection} from "@/app/api/backend";
-import {Dispatch, SetStateAction, useEffect, useState} from "react";
-
-const LS_BL_COLL = "collection_blacklist";
+import {useEffect, useState} from "react";
 
 
 function CloseIcon() {
@@ -32,35 +30,37 @@ export const ModalLayout = (props: {
   onOK: (selected: string[]) => void,
   onCancel: () => void,
 }) => {
-  const [hskList, setHskList] = useState<Collection[]>([]);
+  const [collections, setCollections] = useState<Collection[]>([]);
+  const [checkboxStates, setCheckboxStates] = useState(props.collections.map((x) => false));
   const [selected, setSelected] = useState<string[]>([]);
-  const [hskCheck, setHskCheck] = useState(props.collections.map((x) => false));
 
   useEffect(() => {
-  }, [selected]);
-
-  useEffect(() => {
-    setHskList(
+    setCollections(
         props.collections.map((x) => ({
           id: x.id,
           name: x.name,
           preview: x.preview,
         }))
     );
-
-    setHskCheck(hskList.map((x) => props.blackListColl.includes(x.id)));
-
   }, [props.collections]);
 
   useEffect(() => {
-    const tempSel = hskList.filter((x, i) => hskCheck[i]).map((x) => x.id);
+    const states = collections.map((x) => props.blackListColl.includes(x.id))
+    setCheckboxStates(states);
+  }, [collections])
 
-    setSelected(tempSel);
-  }, [hskCheck, hskList]);
+
+  useEffect(() => {
+    setSelected(
+        collections
+            .filter((x, i) => checkboxStates[i])
+            .map((x) => x.id)
+    );
+  }, [checkboxStates]);
 
   function onCheckboxChange(iHsk: number) {
-    setHskCheck(
-        hskCheck.map((x, i) => {
+    setCheckboxStates(
+        checkboxStates.map((x, i) => {
           if (i == iHsk) return !x;
           return x;
         })
@@ -99,7 +99,7 @@ export const ModalLayout = (props: {
                 </button>
               </div>
               <div className="p-4 flex flex-col gap-2">
-                {hskList.map((hsk, iHsk) => {
+                {collections.map((hsk, iHsk) => {
                   return (
                       <div
                           className="flex flex-grow items-center px-4 py-2 w-full cursor-pointer bg-gray-800"
@@ -123,7 +123,7 @@ export const ModalLayout = (props: {
                           <input
                               id="checkbox"
                               type="checkbox"
-                              checked={hskCheck[iHsk]}
+                              checked={checkboxStates[iHsk]}
                               // onChange={(e) => onCheckboxChange(iHsk, e.target.checked)}
                               onChange={() => {
                               }}
