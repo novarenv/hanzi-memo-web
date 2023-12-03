@@ -100,6 +100,8 @@ export default function Home() {
   }, []);
 
   function fireChanges() {
+    localStorage.setItem(LS_PREVIOUS_TEXT, debouncedInputText)
+
     setIsLoading(true);
     const collectionBL = JSON.parse(localStorage.getItem(LS_BL_COLL) || "[]")
     const chunks = chunkify(inputText, CHUNK_SIZE).map((x, i) => ({text: x, index: i}));
@@ -148,7 +150,6 @@ export default function Home() {
     // FIX: don't fire on init
     if (debouncedInputText.trim().length != 0) {
       fireChanges();
-      localStorage.setItem(LS_PREVIOUS_TEXT, debouncedInputText)
     }
   }, [debouncedInputText]);
 
