@@ -24,6 +24,7 @@ export function ZHChar(props: { zh: string, pinyin: string, is_visible: boolean 
       .join("");
 
   const [show, setShow] = useState(props.is_visible);
+  const isVisibleCharacter = zhs.length == numbered_pinyin.length;
 
   function toggleVisiblity(value: boolean) {
     setShow(props.is_visible || value)
@@ -33,22 +34,27 @@ export function ZHChar(props: { zh: string, pinyin: string, is_visible: boolean 
     toggleVisiblity(props.is_visible)
   }, [props.is_visible])
 
+  const isChinese = props.zh.match(/\p{sc=Han}/u);
+  console.log(`The char ${props.zh}, is punc? ${isChinese}`)
+
   return (
       <>
         <div className="flex flex-col items-center justify-center px-1.5 gap-1.5"
              onMouseOver={() => toggleVisiblity(true)}
              onMouseLeave={() => toggleVisiblity(false)}>
           <div className="text-4xl">
-            {zhs.length == numbered_pinyin.length ?
+            {isVisibleCharacter &&
                 zhs.map((zh, i) => (<ColoredZH zh={zh} tone={tones[i]} key={i}/>))
-                : <span>{props.zh}</span>
             }
           </div>
-          <div className={`${!show ? " text-white bg-gray-800 border border-solid border-gray-600 rounded-sm" : ""}`}>
-                    <span className={`text-lg  ${show ? "visible" : "invisible"}`}>
-                        {marked_pinyin}
-                    </span>
-          </div>
+          {isChinese &&
+              <div
+                  className={`${!show ? " text-white bg-gray-800 border border-solid border-gray-600 rounded-sm" : ""}`}>
+                      <span className={`text-lg  ${show ? "visible" : "invisible"}`}>
+                          {marked_pinyin}
+                      </span>
+              </div>
+          }
         </div>
       </>
   );
