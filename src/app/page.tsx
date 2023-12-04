@@ -16,10 +16,15 @@ import {ZHChar} from "@/components/ZHChar";
 import {Collection, getCollections, getPinyins, Segment} from "./api/backend";
 import ModalLayout from "@/components/Modal";
 
-const LS_BL_COLL = "collection_blacklist";
-const LS_LX_BLACKLIST = "lexeme_blacklist";
-const LS_LX_WHITELIST = "lexeme_whitelist";
-const LS_PREVIOUS_TEXT = "previous_text";
+const USER_DATA_VERSION = parseFloat(process.env.NEXT_PUBLIC_USER_DATA_VERSION ?? "0")
+
+enum LSKey {
+  Version = "version",
+  BlacklistCollection = "collection_blacklist",
+  LexemeBlacklist = "lexeme_blacklist",
+  LexemeWhitelist = "lexeme_whitelist",
+  PreviousText = "previous_text",
+}
 
 interface ZHCharView {
   id: string
@@ -41,25 +46,37 @@ export default function Home() {
   let _userBlackListColl: string[] = [];
   let _userBlacklist: string[] = [];
   let _userWhitelist: string[] = [];
-  let userPreviousText: string = "";
+  let _userPreviousText: string = "";
+  let _userDataVersion = 0;
 
   useEffect(() => {
-    if (typeof window !== "undefined" && firstRender) {
-      _userBlacklist = JSON.parse(localStorage.getItem(LS_LX_BLACKLIST) || "[]");
-      _userWhitelist = JSON.parse(localStorage.getItem(LS_LX_WHITELIST) || "[]")
-      _userBlackListColl = JSON.parse(localStorage.getItem(LS_BL_COLL) || "[]");
-      userPreviousText = localStorage.getItem(LS_PREVIOUS_TEXT) || "";
+    if (typeof window === "undefined" || !firstRender) return;
 
-      setInputText(userPreviousText)
-      setWhitelist(_userWhitelist)
-      setBlacklist(_userBlacklist)
-      setBlacklistColl(_userBlackListColl)
-      setFirstRender(false)
+    _userBlacklist = JSON.parse(localStorage.getItem(LSKey.LexemeBlacklist) || "[]");
+    _userWhitelist = JSON.parse(localStorage.getItem(LSKey.LexemeWhitelist) || "[]")
+    _userBlackListColl = JSON.parse(localStorage.getItem(LSKey.BlacklistCollection) || "[]");
+    _userPreviousText = localStorage.getItem(LSKey.PreviousText) || "";
+
+
+    _userDataVersion = parseFloat(localStorage.getItem(LSKey.Version) || "0")
+    if (USER_DATA_VERSION > _userDataVersion) {
+      // FIXME: migrate changes rather than clearing everything
+      _userWhitelist = []
+      _userBlacklist = []
+      _userBlackListColl = []
+      localStorage.setItem(LSKey.Version, USER_DATA_VERSION.toString())
     }
+
+    setInputText(_userPreviousText)
+    setWhitelist(_userWhitelist)
+    setBlacklist(_userBlacklist)
+    setBlacklistColl(_userBlackListColl)
+
+    setFirstRender(false)
   }, [])
 
   const [mode, setMode] = useState(visibilityMode[1].key);
-  const [inputText, setInputText] = useState(userPreviousText);
+  const [inputText, setInputText] = useState(_userPreviousText);
   const [debouncedInputText] = useDebounce(inputText, 1000);
   const [job, setJob] = useState<Segment[][]>([]);
   const [zhText, setZhText] = useState<ZHCharView[]>([]);
@@ -76,8 +93,8 @@ export default function Home() {
 
 
   useEffect(() => {
-    localStorage.setItem(LS_LX_BLACKLIST, JSON.stringify(blacklist));
-    localStorage.setItem(LS_LX_WHITELIST, JSON.stringify(whitelist));
+    localStorage.setItem(LSKey.LexemeBlacklist, JSON.stringify(blacklist));
+    localStorage.setItem(LSKey.LexemeWhitelist, JSON.stringify(whitelist));
   }, [whitelist, blacklist])
 
 
@@ -100,10 +117,10 @@ export default function Home() {
   }, []);
 
   function fireChanges() {
-    localStorage.setItem(LS_PREVIOUS_TEXT, debouncedInputText)
+    localStorage.setItem(LSKey.PreviousText, debouncedInputText)
 
     setIsLoading(true);
-    const collectionBL = JSON.parse(localStorage.getItem(LS_BL_COLL) || "[]")
+    const collectionBL = JSON.parse(localStorage.getItem(LSKey.BlacklistCollection) || "[]")
     const chunks = chunkify(inputText, CHUNK_SIZE).map((x, i) => ({text: x, index: i}));
     setJob(new Array(chunks.length).fill([]))
     chunks.forEach(chunk => {
@@ -211,7 +228,7 @@ export default function Home() {
 
 
   function onCollectionModalOK(selectedCollection: string[]) {
-    localStorage.setItem(LS_BL_COLL, JSON.stringify(selectedCollection))
+    localStorage.setItem(LSKey.BlacklistCollection, JSON.stringify(selectedCollection))
     setModalVisible(false)
     fireChanges()
   }
