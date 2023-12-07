@@ -35,7 +35,6 @@ export function ZHChar(props: { zh: string, pinyin: string, is_visible: boolean 
   }, [props.is_visible])
 
   const isChinese = props.zh.match(/\p{sc=Han}/u);
-  console.log(`The char ${props.zh}, is punc? ${isChinese}`)
 
   return (
       <>
@@ -58,4 +57,48 @@ export function ZHChar(props: { zh: string, pinyin: string, is_visible: boolean 
         </div>
       </>
   );
+}
+
+
+export interface ZHCharView {
+  id: string
+  zh: string
+  pinyin: string
+  visible: boolean
+}
+
+export function InteractiveZHChar(props: {
+  item: ZHCharView
+  visibleState: boolean,
+  mode: string,
+  onCheckedChange: (item: ZHCharView, checked: boolean) => void,
+}) {
+  return (
+      <>
+        <input
+            type="checkbox"
+            className="scale-75"
+            id={`toggle-${props.item.id}-i`}
+            alt="disable"
+            hidden
+            disabled={props.mode != "smart"}
+            name={props.item.zh}
+            checked={!props.visibleState}
+            onChange={(e) => props.onCheckedChange(props.item, e.target.checked)}
+        />
+        <label
+            htmlFor={`toggle-${props.item.id}-i`}
+            title={`click to ${
+                props.visibleState ? "hide" : "show"
+            } this character`}
+            className="hover:cursor-pointer"
+        >
+          <ZHChar
+              zh={props.item.zh}
+              pinyin={props.item.pinyin}
+              is_visible={props.visibleState}
+          />
+        </label>
+      </>
+  )
 }

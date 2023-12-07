@@ -12,7 +12,7 @@ const CHUNK_SIZE = parseInt(process.env.NEXT_PUBLIC_CHUNK_SIZE ?? "20");
 import {useEffect, useState} from "react";
 import {useDebounce} from "use-debounce";
 import {Header} from "@/components/Header";
-import {ZHChar} from "@/components/ZHChar";
+import {ZHChar, InteractiveZHChar, ZHCharView} from "@/components/ZHChar";
 import {Collection, getCollections, getPinyins, Segment} from "./api/backend";
 import ModalLayout from "@/components/Modal";
 
@@ -25,14 +25,6 @@ enum LSKey {
   LexemeWhitelist = "lexeme_whitelist",
   PreviousText = "previous_text",
 }
-
-interface ZHCharView {
-  id: string
-  zh: string
-  pinyin: string
-  visible: boolean
-}
-
 
 // TODO: Apply cosmetics
 export default function Home() {
@@ -249,32 +241,12 @@ export default function Home() {
           <div className={`flex jusity-center items-center ${isLoading ? "" : "hidden"}`}>Loading...</div>
           <div className={`flex flex-wrap items-start ${!isLoading ? "visible" : "hidden"}`}>
             {zhText.map((item, i) => (
-                <div key={i}>
-                  <input
-                      type="checkbox"
-                      className="scale-75"
-                      id={`toggle-${item.id}-i`}
-                      alt="disable"
-                      hidden
-                      disabled={mode != "smart"}
-                      name={item.zh}
-                      checked={!visibleStates[i]}
-                      onChange={(e) => updateCheckbox(item, e.target.checked)}
-                  />
-                  <label
-                      htmlFor={`toggle-${item.id}-i`}
-                      title={`click to ${
-                          visibleStates[i] ? "hide" : "show"
-                      } this character`}
-                      className="hover:cursor-pointer"
-                  >
-                    <ZHChar
-                        zh={item.zh}
-                        pinyin={item.pinyin}
-                        is_visible={visibleStates[i]}
-                    />
-                  </label>
-                </div>
+                <InteractiveZHChar
+                    key={i}
+                    item={item}
+                    visibleState={visibleStates[i]}
+                    mode={mode}
+                    onCheckedChange={updateCheckbox}/>
             ))}
           </div>
         </section>
