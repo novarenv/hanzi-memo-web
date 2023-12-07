@@ -15,7 +15,7 @@ function ColoredZH(props: { zh: string, tone: number }) {
   )
 }
 
-export function ZHChar(props: { zh: string, pinyin: string, is_visible: boolean }) {
+export function ZHPinyin(props: { zh: string, pinyin: string, is_visible: boolean }) {
   const zhs = props.zh.split("");
   const numbered_pinyin = props.pinyin.split(" ").map(parsePinyin);
   const tones = numbered_pinyin.map(x => x[1]);
@@ -60,18 +60,18 @@ export function ZHChar(props: { zh: string, pinyin: string, is_visible: boolean 
 }
 
 
-export interface ZHCharView {
+export interface Lexeme {
   id: string
   zh: string
   pinyin: string
   visible: boolean
 }
 
-export function InteractiveZHChar(props: {
-  item: ZHCharView
+export function InteractiveZHPinyin(props: {
+  item: Lexeme
   visibleState: boolean,
   mode: string,
-  onCheckedChange: (item: ZHCharView, checked: boolean) => void,
+  onCheckedChange: (item: Lexeme, checked: boolean) => void,
 }) {
   return (
       <>
@@ -93,7 +93,7 @@ export function InteractiveZHChar(props: {
             } this character`}
             className="hover:cursor-pointer"
         >
-          <ZHChar
+          <ZHPinyin
               zh={props.item.zh}
               pinyin={props.item.pinyin}
               is_visible={props.visibleState}

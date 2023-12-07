@@ -12,7 +12,7 @@ const CHUNK_SIZE = parseInt(process.env.NEXT_PUBLIC_CHUNK_SIZE ?? "20");
 import {useEffect, useState} from "react";
 import {useDebounce} from "use-debounce";
 import {Header} from "@/components/Header";
-import {ZHChar, InteractiveZHChar, ZHCharView} from "@/components/ZHChar";
+import {ZHPinyin, InteractiveZHPinyin, Lexeme} from "@/components/ZHPinyin";
 import {Collection, getCollections, getPinyins, Segment} from "./api/backend";
 import ModalLayout from "@/components/Modal";
 
@@ -71,7 +71,7 @@ export default function Home() {
   const [inputText, setInputText] = useState(_userPreviousText);
   const [debouncedInputText] = useDebounce(inputText, 1000);
   const [job, setJob] = useState<Segment[][]>([]);
-  const [zhText, setZhText] = useState<ZHCharView[]>([]);
+  const [zhText, setZhText] = useState<Lexeme[]>([]);
   const [visibleStates, setVisibleStates] = useState(
       zhText.map((x) => x.visible)
   );
@@ -90,7 +90,7 @@ export default function Home() {
   }, [whitelist, blacklist])
 
 
-  function isVisible(mode: string, item: ZHCharView): boolean {
+  function isVisible(mode: string, item: Lexeme): boolean {
     if (mode == "show_all") return true;
     if (mode == "hide_all") return false;
 
@@ -190,7 +190,7 @@ export default function Home() {
 
 
   // =================== Handler
-  function updateCheckbox(item: ZHCharView, checked: boolean) {
+  function updateCheckbox(item: Lexeme, checked: boolean) {
     const changes = zhText.map((x, i) => x.id == item.id);
     setVisibleStates(
         visibleStates.map((ori_state, i) => {
@@ -241,7 +241,7 @@ export default function Home() {
           <div className={`flex jusity-center items-center ${isLoading ? "" : "hidden"}`}>Loading...</div>
           <div className={`flex flex-wrap items-start ${!isLoading ? "visible" : "hidden"}`}>
             {zhText.map((item, i) => (
-                <InteractiveZHChar
+                <InteractiveZHPinyin
                     key={i}
                     item={item}
                     visibleState={visibleStates[i]}
