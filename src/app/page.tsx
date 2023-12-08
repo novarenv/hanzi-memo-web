@@ -20,6 +20,8 @@ import ModalLayout from "@/components/Modal";
 
 const USER_DATA_VERSION = parseFloat(process.env.NEXT_PUBLIC_USER_DATA_VERSION ?? "0")
 
+const noId = (x: string) => !x.startsWith("--no-id");
+
 enum LSKey {
   Version = "version",
   BlacklistCollection = "collection_blacklist",
@@ -118,22 +120,26 @@ export default function Home() {
 
     setIsLoading(true);
     const collectionBL = JSON.parse(localStorage.getItem(LSKey.BlacklistCollection) || "[]")
-    const lines = multiline_chunk(inputText, CHUNK_SIZE).map((line, l) => {
-      const chunkLine = line.map((chunk, i) => ({text: chunk, index: i}))
-      return {
-        line_number: l,
-        chunks: chunkLine,
-      }
-    })
+    const lines = multiline_chunk(inputText, CHUNK_SIZE)
+        .map((line, l) => {
+          const chunkLine =
+              line.map((chunk, i) => ({text: chunk, index: i}))
 
-    setJob(
-        lines.map(line =>
-            new Array(line.chunks.length)
-                .fill([])))
+          return {
+            line_number: l,
+            chunks: chunkLine,
+          }
+        })
+
+    setJob(lines.map(line =>
+        new Array(line.chunks.length).fill([]))
+    )
 
     lines.forEach(line => {
       line.chunks.forEach(chunk => {
-        getPinyins(chunk.text, blacklist, whitelist, collectionBL)
+        const cleanBlacklist = blacklist.filter(noId);
+        const cleanWhitelist = whitelist.filter(noId);
+        getPinyins(chunk.text, cleanBlacklist, cleanWhitelist, collectionBL)
             .then((res) => {
               placeChunk(res.data, line.line_number, chunk.index)
             })
@@ -203,7 +209,8 @@ export default function Home() {
     };
 
     const flatLexemes = zhText.reduce((acc, x) => [...acc, ...x], []);
-    const allId = flatLexemes.map(x => x.id)
+    const allId = flatLexemes
+        .map(x => x.id)
 
     const unrelated = original.filter(x => !allId.includes(x))
     const listFromRequest = flatLexemes
@@ -213,7 +220,7 @@ export default function Home() {
     return [
       ...unrelated,
       ...listFromRequest
-    ].reduce(makeSet, [])
+    ].reduce(makeSet, []).filter(x => !x.startsWith("--no-id"))
   }
 
   // =================== Handler
@@ -248,8 +255,8 @@ export default function Home() {
       newWhitelist.push(item.id)
     }
 
-    setBlacklist(newBlacklist)
-    setWhitelist(newWhitelist)
+    setBlacklist(newBlacklist.filter(noId))
+    setWhitelist(newWhitelist.filter(noId))
   }
 
 

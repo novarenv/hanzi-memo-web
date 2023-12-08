@@ -1,3 +1,5 @@
+import {reAnyStrEndsWithChinesePunctuation} from "@/utils/chunkifier";
+
 const tones: { [key: string]: string[] } = {
   a: ['a', 'ā', 'á', 'ǎ', 'à', 'a'],
   A: ['A', 'Ā', 'Á', 'Ǎ', 'À', 'A'],
@@ -62,15 +64,21 @@ export function parsePinyin(pinyin: string): [string, number] {
   return [pinyin.slice(0, -1), parseInt(pinyin.slice(-1))]
 }
 
-function _chunkify(text: string, size: number): string[] {
+function chunkify_by_size(text: string, size: number): string[] {
   const re = new RegExp(`.{1,${size}}`, "g")
   return text.match(re) as string[]
 }
 
 export function multiline_chunk(text: string, size: number): string[][] {
   const lines = text.split("\n").filter(x => x.trim().length > 0)
-  const chunks = lines.map(line => _chunkify(line, size))
-  console.log(chunks)
-  return chunks
+  const sentences = lines.map(line => {
+    const chunk = line.match(reAnyStrEndsWithChinesePunctuation)
+    if (!chunk) {
+      return chunkify_by_size(line, size)
+    }
+    return chunk as string[]
+  })
+  console.log(sentences)
+  return sentences;
 }
 
