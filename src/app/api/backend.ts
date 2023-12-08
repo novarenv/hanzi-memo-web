@@ -1,5 +1,3 @@
-import PreviousMap from "postcss/lib/previous-map";
-
 export const dynamic = "force-dynamic"; // defaults to force-static
 const BASE_URL = process.env.NEXT_PUBLIC_API;
 
@@ -41,7 +39,6 @@ export async function getPinyins(
     lexWhitelist: string[],
     collBlacklist: string[],
 ) {
-
   const urlParam = new URLSearchParams({
     blacklist_collection: collBlacklist.join(","),
     blacklist_lexeme: lexBlacklist.join(","),
