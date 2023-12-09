@@ -48,7 +48,7 @@ export function ZHPinyin(props: { zh: string, pinyin: string, is_visible: boolea
           </div>
           {isChinese &&
               <div
-                  className={`${!show ? " text-white bg-gray-800 border border-solid border-gray-600 rounded-sm" : ""}`}>
+                  className={`border border-solid rounded-sm text-white ${!show ? "bg-gray-800 border-gray-600" : "border-gray-800"}`}>
                       <span className={`text-lg  ${show ? "visible" : "invisible"}`}>
                           {marked_pinyin}
                       </span>
