@@ -73,15 +73,15 @@ export function InteractiveZHPinyin(props: {
   mode: string,
   onCheckedChange: (item: Lexeme, checked: boolean) => void,
 }) {
+  const isLexeme = !props.item.id.startsWith("--no-id")
   return (
       <>
         <input
             type="checkbox"
-            className="scale-75"
             id={`toggle-${props.item.id}-i`}
             alt="disable"
             hidden
-            disabled={props.mode != "smart"}
+            disabled={props.mode != "smart" || !isLexeme}
             name={props.item.zh}
             checked={!props.visibleState}
             onChange={(e) => props.onCheckedChange(props.item, e.target.checked)}
@@ -91,7 +91,7 @@ export function InteractiveZHPinyin(props: {
             title={`click to ${
                 props.visibleState ? "hide" : "show"
             } this character`}
-            className="hover:cursor-pointer"
+            className={isLexeme ? "hover:cursor-pointer" : ""}
         >
           <ZHPinyin
               zh={props.item.zh}
