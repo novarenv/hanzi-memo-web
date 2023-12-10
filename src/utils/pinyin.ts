@@ -72,7 +72,7 @@ function chunkify_by_size(text: string, size: number): string[] {
 export function multiline_chunk(text: string, size: number): string[][] {
   const lines = text.split("\n").filter(x => x.trim().length > 0)
   const sentences = lines.map(line => {
-    const chunk = line.match(reAnyStrEndsWithChinesePunctuation)
+    const chunk = line.split(reAnyStrEndsWithChinesePunctuation)
     if (!chunk) {
       return chunkify_by_size(line, size)
     }

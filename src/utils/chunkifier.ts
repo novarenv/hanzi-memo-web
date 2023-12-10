@@ -67,12 +67,16 @@ const punctuation = non_stops + stops
 
 // The original put `non_stops` within the sentence,
 // this customized version will break on non_stops punctuaion
-const sentence_end = `[${non_stops}${stops}][」﹂”』’》）］｝〕〗〙〛〉】]*`
+const english_symbol = `-!$%^&*()_+|~=\`{}\\[\\]:";'<>?,.\\/`
+const sentence_end = `[${english_symbol}${non_stops}${stops}][」﹂”』’》）］｝〕〗〙〛〉】]*`
 
 // A regular expression pattern for a Chinese sentence. A sentence is defined
 // as a series of characters and non-stop punctuation marks followed by a stop
 // and zero or more container-closing punctuation marks (e.g. apostrophe or
 // brackets).
 const sent = `[${characters}${radicals}]*${sentence_end}`
+
+// (?<=target), split at target but include the target to the previous match
+
 export const reAnyStrEndsWithChinesePunctuation =
-    new RegExp(`.*?${sentence_end}?`, "g")
+    new RegExp(`(?<=${sentence_end})`, "g")
