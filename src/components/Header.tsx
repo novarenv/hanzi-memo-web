@@ -41,7 +41,7 @@ export function Header(props: {
 
 
   return (
-      <div className="w-full flex items-center bg-blue-900 text-white py-2 gap-2">
+      <div className="w-full flex items-stretch bg-blue-900 text-white gap-2">
         <div
             className={`${
                 !aboutUsVis ? "hidden" : ""
@@ -79,11 +79,14 @@ export function Header(props: {
           </span>
         </div>
 
-        <span className="text-xl font-bold md:text-3xl text-white p-2">
-            Hanzi Memo
-          </span>
+        <div
+            className="flex flex-col md:flex-row md:gap-0.5 text-xl font-bold md:text-3xl text-white px-4 md:items-center justify-center">
+          <span> Hanzi </span>
+          <span> Memo </span>
+        </div>
         <div className="flex-grow"></div>
-        <span className="shrink">
+        <div className="flex gap-2">
+          <div className="shrink py-2">
             <span className="text-white">Sample Text: </span>
             <br/>
             <select
@@ -100,19 +103,18 @@ export function Header(props: {
                   </option>
               ))}
             </select>
-          </span>
-        <span
-            className="md:hidden text-white p-2 cursor-pointer hover:bg-gray-400 hover:text-white"
-            onClick={() => setAboutUsVis(!aboutUsVis)}
-        >
-          <TripleDots/>
-        </span>
-        <span
-            className="hidden md:flex text-white p-2 cursor-pointer hover:bg-gray-400  hover:text-white"
-            onClick={() => setAboutUsVis(!aboutUsVis)}
-        >
-          About Us
-        </span>
+          </div>
+          <div
+              className="md:hidden flex items-center text-white cursor-pointer hover:bg-gray-400 hover:text-white"
+              onClick={() => setAboutUsVis(!aboutUsVis)}>
+            <TripleDots/>
+          </div>
+          <div
+              className="hidden md:flex text-white px-2 cursor-pointer hover:bg-gray-400 hover:text-white items-center"
+              onClick={() => setAboutUsVis(!aboutUsVis)}>
+            About Us
+          </div>
+        </div>
       </div>
   );
 }
