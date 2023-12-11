@@ -4,7 +4,11 @@ import {useEffect, useState} from "react";
 function ColoredZH(props: { zh: string, tone: number }) {
   // TODO: Pick better colors
   const colors = [
-    "red", "limegreen", "rebeccapurple", "purple", "slategray"
+    "#ff8080",
+    "#80ff80",
+    "#8080ff",
+    "#df80ff",
+    "#c6c6c6"
   ];
   return (
       <>
