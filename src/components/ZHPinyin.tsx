@@ -73,7 +73,7 @@ export function InteractiveZHPinyin(props: {
   mode: string,
   onCheckedChange: (item: Lexeme, checked: boolean) => void,
 }) {
-  const isLexeme = !props.item.id.startsWith("--no-id")
+  const isLexeme = !props.item.id.startsWith("--no-id");
   return (
       <>
         <input
@@ -91,13 +91,21 @@ export function InteractiveZHPinyin(props: {
             title={`click to ${
                 props.visibleState ? "hide" : "show"
             } this character`}
-            className={isLexeme ? "hover:cursor-pointer" : ""}
+            className={`flex flex-row items-start ${isLexeme ? "hover:cursor-pointer" : ""}`}
         >
-          <ZHPinyin
-              zh={props.item.zh}
-              pinyin={props.item.pinyin}
-              is_visible={props.visibleState}
-          />
+          {
+            isLexeme ?
+                <ZHPinyin
+                    zh={props.item.zh}
+                    pinyin={props.item.pinyin}
+                    is_visible={props.visibleState}
+                />
+                :
+                <span className="px-0.5 py-1 text-4xl">
+                  {props.item.zh}
+                </span>
+
+          }
         </label>
       </>
   )
