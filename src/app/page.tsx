@@ -1,5 +1,15 @@
 "use client";
 
+import {multiline_chunk} from "@/utils/pinyin";
+import {useEffect, useState} from "react";
+import {useDebounce} from "use-debounce";
+import {Header} from "@/components/Header";
+import {InteractiveZHPinyin, Lexeme} from "@/components/ZHPinyin";
+import {Collection, getCollections, getPinyins, Segment} from "./api/backend";
+import ModalLayout from "@/components/Modal";
+import {ChevronsRight, Crosshair, Eye, EyeOff, List} from 'react-feather'
+
+
 enum TriggerMode {
   Debounce = "DEBOUNCE",
   Button = "BUTTON",
@@ -9,62 +19,72 @@ const envTriggerMode = process.env.NEXT_PUBLIC_TRIGGER_MODE as TriggerMode;
 const TRIGGER_MODE = envTriggerMode ?? TriggerMode.Debounce;
 const CHUNK_SIZE = parseInt(process.env.NEXT_PUBLIC_CHUNK_SIZE ?? "20");
 
-import {useEffect, useState} from "react";
-import {useDebounce} from "use-debounce";
-import {Header} from "@/components/Header";
-import {ZHChar} from "@/components/ZHChar";
-import {Collection, getCollections, getPinyins, Segment} from "./api/backend";
-import ModalLayout from "@/components/Modal";
 
-const LS_BL_COLL = "collection_blacklist";
-const LS_LX_BLACKLIST = "lexeme_blacklist";
-const LS_LX_WHITELIST = "lexeme_whitelist";
-const LS_PREVIOUS_TEXT = "previous_text";
+const USER_DATA_VERSION = parseFloat(process.env.NEXT_PUBLIC_USER_DATA_VERSION ?? "0")
 
-interface ZHCharView {
-  id: string
-  zh: string
-  pinyin: string
-  visible: boolean
+const noId = (x: string) => !x.startsWith("--no-id");
+
+enum LSKey {
+  Version = "version",
+  BlacklistCollection = "collection_blacklist",
+  LexemeBlacklist = "lexeme_blacklist",
+  LexemeWhitelist = "lexeme_whitelist",
+  PreviousText = "previous_text",
 }
-
 
 // TODO: Apply cosmetics
 export default function Home() {
+
+  const iconSize = 20;
   const visibilityMode = [
-    {key: "show_all", label: "Show All"},
-    {key: "smart", label: "Smart"},
-    {key: "hide_all", label: "Hide All"},
+    {key: "show_all", label: "Show All", icon: (<Eye size={iconSize}/>)},
+    {key: "smart", label: "Smart", icon: (<Crosshair size={iconSize}/>)},
+    {key: "hide_all", label: "Hide All", icon: (<EyeOff size={iconSize}/>)},
   ];
 
   const [firstRender, setFirstRender] = useState(true);
   let _userBlackListColl: string[] = [];
   let _userBlacklist: string[] = [];
   let _userWhitelist: string[] = [];
-  let userPreviousText: string = "";
+  let _userPreviousText: string = "";
+  let _userDataVersion = 0;
 
   useEffect(() => {
-    if (typeof window !== "undefined" && firstRender) {
-      _userBlacklist = JSON.parse(localStorage.getItem(LS_LX_BLACKLIST) || "[]");
-      _userWhitelist = JSON.parse(localStorage.getItem(LS_LX_WHITELIST) || "[]")
-      _userBlackListColl = JSON.parse(localStorage.getItem(LS_BL_COLL) || "[]");
-      userPreviousText = localStorage.getItem(LS_PREVIOUS_TEXT) || "";
+    if (typeof window === "undefined" || !firstRender) return;
 
-      setInputText(userPreviousText)
-      setWhitelist(_userWhitelist)
-      setBlacklist(_userBlacklist)
-      setBlacklistColl(_userBlackListColl)
-      setFirstRender(false)
+    _userBlacklist = JSON.parse(localStorage.getItem(LSKey.LexemeBlacklist) || "[]");
+    _userWhitelist = JSON.parse(localStorage.getItem(LSKey.LexemeWhitelist) || "[]")
+    _userBlackListColl = JSON.parse(localStorage.getItem(LSKey.BlacklistCollection) || "[]");
+    _userPreviousText = localStorage.getItem(LSKey.PreviousText) || "";
+
+
+    _userDataVersion = parseFloat(localStorage.getItem(LSKey.Version) || "0")
+    if (USER_DATA_VERSION > _userDataVersion) {
+      // FIXME: migrate changes rather than clearing everything
+      _userWhitelist = []
+      _userBlacklist = []
+      _userBlackListColl = []
+      localStorage.setItem(LSKey.Version, USER_DATA_VERSION.toString())
     }
+
+    setInputText(_userPreviousText)
+    setWhitelist(_userWhitelist)
+    setBlacklist(_userBlacklist)
+    setBlacklistColl(_userBlackListColl)
+
+    setFirstRender(false)
   }, [])
 
+  type Segments = Segment[]
+  type Line = Segments[]
+
   const [mode, setMode] = useState(visibilityMode[1].key);
-  const [inputText, setInputText] = useState(userPreviousText);
+  const [inputText, setInputText] = useState(_userPreviousText);
   const [debouncedInputText] = useDebounce(inputText, 1000);
-  const [job, setJob] = useState<Segment[][]>([]);
-  const [zhText, setZhText] = useState<ZHCharView[]>([]);
+  const [job, setJob] = useState<Line[]>([]);
+  const [zhText, setZhText] = useState<Lexeme[][]>([]);
   const [visibleStates, setVisibleStates] = useState(
-      zhText.map((x) => x.visible)
+      zhText.map((x) => x.map(l => l.visible))
   );
 
   const [blacklist, setBlacklist] = useState(_userBlacklist);
@@ -76,12 +96,12 @@ export default function Home() {
 
 
   useEffect(() => {
-    localStorage.setItem(LS_LX_BLACKLIST, JSON.stringify(blacklist));
-    localStorage.setItem(LS_LX_WHITELIST, JSON.stringify(whitelist));
+    localStorage.setItem(LSKey.LexemeBlacklist, JSON.stringify(blacklist));
+    localStorage.setItem(LSKey.LexemeWhitelist, JSON.stringify(whitelist));
   }, [whitelist, blacklist])
 
 
-  function isVisible(mode: string, item: ZHCharView): boolean {
+  function isVisible(mode: string, item: Lexeme): boolean {
     if (mode == "show_all") return true;
     if (mode == "hide_all") return false;
 
@@ -100,26 +120,56 @@ export default function Home() {
   }, []);
 
   function fireChanges() {
-    localStorage.setItem(LS_PREVIOUS_TEXT, debouncedInputText)
+    localStorage.setItem(LSKey.PreviousText, debouncedInputText)
 
     setIsLoading(true);
-    const collectionBL = JSON.parse(localStorage.getItem(LS_BL_COLL) || "[]")
-    const chunks = chunkify(inputText, CHUNK_SIZE).map((x, i) => ({text: x, index: i}));
-    setJob(new Array(chunks.length).fill([]))
-    chunks.forEach(chunk => {
-      getPinyins(chunk.text, blacklist, whitelist, collectionBL)
-          .then((res) => {
-            setJob((prev) => {
-              return [...prev.slice(0, chunk.index), res.data, ...prev.slice(chunk.index + 1)]
-            })
-          })
-    })
+    const collectionBL = JSON.parse(localStorage.getItem(LSKey.BlacklistCollection) || "[]")
+    const lines = multiline_chunk(inputText, CHUNK_SIZE)
+        .map((line, l) => {
+          const chunkLine =
+              line.map((chunk, i) => ({text: chunk, index: i}))
 
+          return {
+            line_number: l,
+            chunks: chunkLine,
+          }
+        })
+
+    setJob(lines.map(line =>
+        new Array(line.chunks.length).fill([]))
+    )
+
+    lines.forEach(line => {
+      line.chunks.forEach(chunk => {
+        const cleanBlacklist = blacklist.filter(noId);
+        const cleanWhitelist = whitelist.filter(noId);
+        getPinyins(chunk.text, cleanBlacklist, cleanWhitelist, collectionBL)
+            .then((res) => {
+              placeChunk(res.data, line.line_number, chunk.index)
+            })
+      })
+    })
+  }
+
+  function placeChunk(chunk: Segments, line: number, column: number) {
+    setJob(lines => {
+      let oldLine = lines[line]
+      oldLine.splice(column, 1, chunk)
+      return [
+        ...lines.slice(0, line),
+        oldLine,
+        ...lines.slice(line + 1),
+      ]
+    })
   }
 
   useEffect(() => {
-    const flatSegment = job.reduce((a, b) => [...a, ...b], [])
-    setZhText(flatSegment.map(s => {
+    const flatSegment =
+        job.map(line => {
+          return line.reduce((acc, s) => [...acc, ...s], [])
+        })
+
+    function segmentToLexeme(s: Segment): Lexeme {
       let pinyin_id = `--no-id-${s.segment}--`;
       let pinyin_text = s.segment;
 
@@ -134,15 +184,11 @@ export default function Home() {
         zh: s.segment,
         visible: s.strict_visible,
       }
-    }))
+    }
+
+    setZhText(flatSegment.map(line => line.map(segmentToLexeme)))
     setIsLoading(false);
   }, [job])
-
-  function chunkify(text: string, size: number): string[] {
-    const re = new RegExp(`.{1,${size}}`, "g")
-    console.log(re)
-    return text.match(re) as string[]
-  }
 
   useEffect(() => {
     if (TRIGGER_MODE == TriggerMode.Button) return;
@@ -155,9 +201,8 @@ export default function Home() {
 
   useEffect(() => {
     setVisibleStates(
-        zhText.map((x, i) => {
-          return isVisible(mode, x);
-        })
+        zhText.map((line, i) =>
+            line.map((x, j) => isVisible(mode, x)))
     );
   }, [mode, zhText]);
 
@@ -167,30 +212,39 @@ export default function Home() {
       return a;
     };
 
-    const allId = zhText.map(x => x.id)
+    const flatLexemes = zhText.reduce((acc, x) => [...acc, ...x], []);
+    const allId = flatLexemes
+        .map(x => x.id)
+
     const unrelated = original.filter(x => !allId.includes(x))
-    const listFromRequest = zhText
+    const listFromRequest = flatLexemes
         .filter(x => original.includes(x.id))
         .map(x => x.id);
 
     return [
       ...unrelated,
       ...listFromRequest
-    ].reduce(makeSet, [])
+    ].reduce(makeSet, []).filter(x => !x.startsWith("--no-id"))
   }
 
-
   // =================== Handler
-  function updateCheckbox(item: ZHCharView, checked: boolean) {
-    const changes = zhText.map((x, i) => x.id == item.id);
+  function updateCheckbox(item: Lexeme, checked: boolean) {
+    const changes = zhText.map(line => line.map(lex => lex.id == item.id));
+
+    function changeState(ori_state: boolean, row: number, col: number) {
+      if (changes[row][col]) {
+        return !checked;
+      }
+      return ori_state;
+    }
+
+
     setVisibleStates(
-        visibleStates.map((ori_state, i) => {
-          if (changes[i]) {
-            return !checked;
-          }
-          return ori_state;
-        })
-    );
+        visibleStates
+            .map((line, i) =>
+                line.map((ori_state, j) =>
+                    changeState(ori_state, i, j))))
+
 
     // FIXME: this didnt differentiate between words that blacklisted from the collection
     // TODO: get exclusive blacklist/white list from backend
@@ -205,13 +259,13 @@ export default function Home() {
       newWhitelist.push(item.id)
     }
 
-    setBlacklist(newBlacklist)
-    setWhitelist(newWhitelist)
+    setBlacklist(newBlacklist.filter(noId))
+    setWhitelist(newWhitelist.filter(noId))
   }
 
 
   function onCollectionModalOK(selectedCollection: string[]) {
-    localStorage.setItem(LS_BL_COLL, JSON.stringify(selectedCollection))
+    localStorage.setItem(LSKey.BlacklistCollection, JSON.stringify(selectedCollection))
     setModalVisible(false)
     fireChanges()
   }
@@ -228,53 +282,51 @@ export default function Home() {
         <Header onPresetChange={(t) => setInputText(t)}/>
         {/* ================ Body */}
         <section
-            className="h-3/5 max-h-[70vw] min-h-[10rem] w-full flex justify-center flex-grow bg-gray-800 p-4 overflow-y-scroll items-start">
+            className="h-3/5 max-h-[65vh] min-h-[10rem] w-full flex justify-center flex-grow bg-gray-800 py-4 overflow-y-scroll items-start">
           <div className={`flex jusity-center items-center ${isLoading ? "" : "hidden"}`}>Loading...</div>
-          <div className={`flex flex-wrap items-start ${!isLoading ? "visible" : "hidden"}`}>
-            {zhText.map((item, i) => (
-                <div key={i}>
-                  <input
-                      type="checkbox"
-                      className="scale-75"
-                      id={`toggle-${item.id}-i`}
-                      alt="disable"
-                      hidden
-                      disabled={mode != "smart"}
-                      name={item.zh}
-                      checked={!visibleStates[i]}
-                      onChange={(e) => updateCheckbox(item, e.target.checked)}
-                  />
-                  <label
-                      htmlFor={`toggle-${item.id}-i`}
-                      title={`click to ${
-                          visibleStates[i] ? "hide" : "show"
-                      } this character`}
-                      className="hover:cursor-pointer"
-                  >
-                    <ZHChar
-                        zh={item.zh}
-                        pinyin={item.pinyin}
-                        is_visible={visibleStates[i]}
-                    />
-                  </label>
-                </div>
-            ))}
+          <div className={`flex flex-col gap-2 ${!isLoading ? "visible" : "hidden"}`}>
+            {zhText.map((line, i) =>
+                (
+                    visibleStates[i] &&
+                    <div key={i} className="flex items-center">
+                        <span className="p-2 md:p-4 text-xl text-gray-500 font-bold">
+                          {i + 1}
+                        </span>
+                        <div key={i}
+                             className="flex flex-row flex-wrap gap-y-2 p-2 border-l-2 border-solid border-gray-500">
+                          {
+                            line.map((item, j) => (
+                                <InteractiveZHPinyin
+                                    key={`${i}-${j}`}
+                                    item={item}
+                                    visibleState={visibleStates[i][j]}
+                                    mode={mode}
+                                    onCheckedChange={updateCheckbox}/>
+                            ))
+                          }
+                        </div>
+
+                    </div>
+                )
+            )}
           </div>
         </section>
 
         <section className="flex flex-col flex-grow h-2/5 min-h-[8rem] w-full relative">
           <div className="flex text-white text-lg bg-blue-900 items-center">
-
             <div
                 className={`flex gap-2 p-2 bg-white text-black hover:bg-gray-400 hover:text-white md:hover:cursor-pointer font-bold`}
                 onClick={() => setModalVisible(!modalVisible)}
             >
-              <span>Blacklist</span>
+              <span className="flex gap-2 items-center">
+                <List size={iconSize}/>
+                Blacklist
+              </span>
             </div>
             <div className="flex flex-row-reverse flex-grow">
               {visibilityMode.map((x, i) => (
                   <label
-                      className={`flex gap-2 h-full p-2 hover:bg-gray-400 hover:cursor-pointer ${
+                      className={`flex gap-2 h-full px-3 py-2 hover:bg-gray-400 hover:cursor-pointer ${
                           mode == x.key ? "bg-gray-200 text-black font-bold" : ""
                       }`}
                       key={i}
@@ -285,7 +337,10 @@ export default function Home() {
                         onChange={() => setMode(x.key)}
                         hidden={true}
                     />
-                    <span>{x.label}</span>
+                    <span className="flex gap-1.5 items-center">
+                      {x.icon}
+                      {x.label}
+                    </span>
                   </label>
               ))}
             </div>
@@ -299,9 +354,10 @@ export default function Home() {
           </div>
           {TRIGGER_MODE == TriggerMode.Button &&
               <button
-                  className="p-2 bg-white text-black font-bold absolute bottom-5 right-5 hover:bg-gray-400 hover:text-white"
+                  className="flex items-center p-2 bg-white text-black font-bold absolute bottom-5 right-5 hover:bg-gray-400 hover:text-white "
                   onClick={() => fireChanges()}>
                   Analyze
+                  <ChevronsRight size={iconSize}/>
               </button>
           }
         </section>

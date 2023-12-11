@@ -70,9 +70,9 @@ export function Header(props: {
           </div>
           <div className="flex flex-col justify-center text-xl">
             <span className="mb-4 font-bold">Made with love by:</span>
-            <span>Novaren Veraldo</span>
             <span>Gumelar Purnama Nugraha</span>
             <span>Ndombasi D. J. Andre</span>
+            <span>Novaren Veraldo</span>
           </div>
           <span className="flex justify-center mt-12 text-md font-bold">
             @NUIST
