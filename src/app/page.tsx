@@ -1,6 +1,14 @@
 "use client";
 
 import {multiline_chunk} from "@/utils/pinyin";
+import {useEffect, useState} from "react";
+import {useDebounce} from "use-debounce";
+import {Header} from "@/components/Header";
+import {InteractiveZHPinyin, Lexeme} from "@/components/ZHPinyin";
+import {Collection, getCollections, getPinyins, Segment} from "./api/backend";
+import ModalLayout from "@/components/Modal";
+import {ChevronsRight, Crosshair, Eye, EyeOff, List} from 'react-feather'
+
 
 enum TriggerMode {
   Debounce = "DEBOUNCE",
@@ -11,12 +19,6 @@ const envTriggerMode = process.env.NEXT_PUBLIC_TRIGGER_MODE as TriggerMode;
 const TRIGGER_MODE = envTriggerMode ?? TriggerMode.Debounce;
 const CHUNK_SIZE = parseInt(process.env.NEXT_PUBLIC_CHUNK_SIZE ?? "20");
 
-import {useEffect, useState} from "react";
-import {useDebounce} from "use-debounce";
-import {Header} from "@/components/Header";
-import {InteractiveZHPinyin, Lexeme} from "@/components/ZHPinyin";
-import {Collection, getCollections, getPinyins, Segment} from "./api/backend";
-import ModalLayout from "@/components/Modal";
 
 const USER_DATA_VERSION = parseFloat(process.env.NEXT_PUBLIC_USER_DATA_VERSION ?? "0")
 
@@ -32,10 +34,12 @@ enum LSKey {
 
 // TODO: Apply cosmetics
 export default function Home() {
+
+  const iconSize = 20;
   const visibilityMode = [
-    {key: "show_all", label: "Show All"},
-    {key: "smart", label: "Smart"},
-    {key: "hide_all", label: "Hide All"},
+    {key: "show_all", label: "Show All", icon: (<Eye size={iconSize}/>)},
+    {key: "smart", label: "Smart", icon: (<Crosshair size={iconSize}/>)},
+    {key: "hide_all", label: "Hide All", icon: (<EyeOff size={iconSize}/>)},
   ];
 
   const [firstRender, setFirstRender] = useState(true);
@@ -314,12 +318,15 @@ export default function Home() {
                 className={`flex gap-2 p-2 bg-white text-black hover:bg-gray-400 hover:text-white md:hover:cursor-pointer font-bold`}
                 onClick={() => setModalVisible(!modalVisible)}
             >
-              <span>Blacklist</span>
+              <span className="flex gap-2 items-center">
+                <List size={iconSize}/>
+                Blacklist
+              </span>
             </div>
             <div className="flex flex-row-reverse flex-grow">
               {visibilityMode.map((x, i) => (
                   <label
-                      className={`flex gap-2 h-full p-2 hover:bg-gray-400 hover:cursor-pointer ${
+                      className={`flex gap-2 h-full px-3 py-2 hover:bg-gray-400 hover:cursor-pointer ${
                           mode == x.key ? "bg-gray-200 text-black font-bold" : ""
                       }`}
                       key={i}
@@ -330,7 +337,10 @@ export default function Home() {
                         onChange={() => setMode(x.key)}
                         hidden={true}
                     />
-                    <span>{x.label}</span>
+                    <span className="flex gap-1.5 items-center">
+                      {x.icon}
+                      {x.label}
+                    </span>
                   </label>
               ))}
             </div>
@@ -344,9 +354,10 @@ export default function Home() {
           </div>
           {TRIGGER_MODE == TriggerMode.Button &&
               <button
-                  className="p-2 bg-white text-black font-bold absolute bottom-5 right-5 hover:bg-gray-400 hover:text-white"
+                  className="flex items-center p-2 bg-white text-black font-bold absolute bottom-5 right-5 hover:bg-gray-400 hover:text-white "
                   onClick={() => fireChanges()}>
                   Analyze
+                  <ChevronsRight size={iconSize}/>
               </button>
           }
         </section>
