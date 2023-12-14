@@ -313,15 +313,12 @@ export default function Home() {
         </section>
 
         <section className="flex flex-col flex-grow h-2/5 min-h-[8rem] w-full relative">
-          <div className="flex text-white text-lg bg-blue-900 items-center">
+          <div className="flex text-white text-lg bg-blue-900 items-stretch  text-sm md:text-lg">
             <div
-                className={`flex gap-2 p-2 bg-white text-black hover:bg-gray-400 hover:text-white md:hover:cursor-pointer font-bold`}
-                onClick={() => setModalVisible(!modalVisible)}
-            >
-              <span className="flex gap-2 items-center">
-                <List size={iconSize}/>
-                Blacklist
-              </span>
+                className={`flex flex-col md:flex-row gap-1 px-2 bg-white text-md text-black hover:bg-gray-400 hover:text-white md:hover:cursor-pointer font-bold items-center justify-center`}
+                onClick={() => setModalVisible(!modalVisible)}>
+              <List size={iconSize}/>
+              Blacklist
             </div>
             <div className="flex flex-row-reverse flex-grow">
               {visibilityMode.map((x, i) => (
@@ -337,17 +334,17 @@ export default function Home() {
                         onChange={() => setMode(x.key)}
                         hidden={true}
                     />
-                    <span className="flex gap-1.5 items-center">
-                      {x.icon}
+                    <div className="flex flex-col md:flex-row items-center md:gap-2">
+                      <span>{x.icon}</span>
                       {x.label}
-                    </span>
+                    </div>
                   </label>
               ))}
             </div>
           </div>
           <div className="flex-grow">
             <textarea
-                className="w-full h-full bg-gray-900 p-4"
+                className="w-full h-full bg-gray-900 p-4 text-xl"
                 placeholder="Write something here"
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}/>
