@@ -271,7 +271,7 @@ export default function Home() {
   }
 
   return (
-      <main className="flex min-h-screen flex-col items-center justify-between l:p-24">
+      <main className="flex h-screen flex-col items-center justify-between l:p-24">
         <ModalLayout
             isVisible={modalVisible}
             collections={collections}
@@ -342,9 +342,9 @@ export default function Home() {
               ))}
             </div>
           </div>
-          <div className="flex-grow">
+          <div className="flex flex-grow">
             <textarea
-                className="w-full h-full bg-gray-900 p-4 text-xl"
+                className="w-full bg-gray-900 p-4 text-xl"
                 placeholder="Write something here"
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}/>
