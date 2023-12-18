@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Created with Vectornator (http://vectornator.io/) -->
+<svg height="100%" stroke-miterlimit="10" style="fill-rule:nonzero;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;" version="1.1" viewBox="0 0 512 512" width="100%" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:vectornator="http://vectornator.io" xmlns:xlink="http://www.w3.org/1999/xlink">
+<defs/>
+<g id="Layer-3" vectornator:layerName="Layer 3">
+<path d="M65.4534 240.539C65.4534 163.803 127.661 101.595 204.398 101.595C281.135 101.595 343.342 163.803 343.342 240.539C343.342 317.276 281.135 379.484 204.398 379.484C127.661 379.484 65.4534 317.276 65.4534 240.539Z" fill="#ffbc58" fill-rule="nonzero" opacity="1" stroke="none" vectornator:layerName="Oval 1"/>
+</g>
+<g id="Layer-2" vectornator:layerName="Layer 2"/>
+<g id="Layer-1" vectornator:layerName="Layer 1">
+<path d="M118.618 88.7067L174.881 87.0842L104.148 387.521C104.148 387.521-9.0465 400.491 6.46354 389.715C92.4695 329.959 118.618 88.7067 118.618 88.7067Z" fill="#e71f4a" fill-rule="nonzero" opacity="1" stroke="none" vectornator:layerName="Curve 1"/>
+<path d="M219.157 87.0842L249.487 308.399C249.487 308.399 264.244 499.622 500.58 392.125C540.791 373.835 381.276 429.318 320.061 309.302C268.585 208.381 280.772 90.9963 280.772 90.9963L219.157 87.0842Z" fill="#e71f4a" fill-rule="nonzero" opacity="1" stroke="none" vectornator:layerName="Curve 2"/>
+<path d="M35.7979 160.609C33.3339 165.537 367.732 155.681 367.732 155.681L373.012 197.568L49.5258 256C49.5258 256 38.2619 155.681 35.7979 160.609Z" fill="#3395ff" fill-rule="nonzero" opacity="1" stroke="none" vectornator:layerName="Curve 3"/>
+<path d="M145.982 267.264C145.982 267.264 182.847 351.039 219.157 256" fill="none" opacity="1" stroke="#3395ff" stroke-linecap="butt" stroke-linejoin="round" stroke-width="8.49215" vectornator:layerName="Curve 4"/>
+<g opacity="1" vectornator:layerName="Group 1"/>
+</g>
+</svg>

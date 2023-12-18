@@ -79,11 +79,15 @@ export function Header(props: {
           </span>
         </div>
 
-        <div
-            className="flex flex-col md:flex-row md:gap-0.5 text-xl font-bold md:text-3xl text-white px-4 md:items-center justify-center">
-          <span> Hanzi </span>
-          <span> Memo </span>
+        <div className="flex justify-center items-center px-4 gap-1">
+          <img src="/hzm-logo.svg" alt="HanziMemo" className="h-12 md:h-16"/>
+          <div
+              className="flex flex-col md:flex-row md:gap-0.5 text-xl font-bold md:text-3xl text-white md:items-center justify-center">
+            <span> Hanzi </span>
+            <span> Memo </span>
+          </div>
         </div>
+
         <div className="flex-grow"></div>
         <div className="flex gap-2">
           <div className="shrink py-2">
@@ -95,7 +99,7 @@ export function Header(props: {
                 className="bg-white p-1 text-black"
                 onChange={handlePresetChange}>
               <option value="1" disabled hidden selected>
-                Sample Text 
+                Sample Text
               </option>
               {sampleText.map((item, i) => (
                   <option value={item.id} key={i}>
