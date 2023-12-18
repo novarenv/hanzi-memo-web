@@ -94,8 +94,8 @@ export function Header(props: {
                 id=""
                 className="bg-white p-1 text-black"
                 onChange={handlePresetChange}>
-              <option value="1" disabled hidden>
-                Presets
+              <option value="1" disabled hidden selected>
+                Sample Text 
               </option>
               {sampleText.map((item, i) => (
                   <option value={item.id} key={i}>
